@@ -20,7 +20,9 @@ function monthLabel(key: string) {
   return `${MONTHS[parseInt(m)-1]} '${y.slice(2)}`
 }
 function getAllMonths(runs: Run[]) {
-  return [...new Set(runs.filter(r=>r.date).map(r=>getMonthKey(r.date)))].sort()
+  const keys = runs.filter(r=>r.date).map(r=>getMonthKey(r.date))
+  const unique = Array.from(new Set(keys))
+  return unique.sort()
 }
 
 function predictReplacement(shoe: Shoe, runs: Run[]) {
