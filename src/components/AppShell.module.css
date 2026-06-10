@@ -1,6 +1,5 @@
 .shell { display: flex; flex-direction: column; min-height: 100vh; }
 
-/* TOP NAV */
 .nav {
   display: flex;
   align-items: center;
@@ -25,7 +24,6 @@
 }
 
 .logo span { color: var(--text); text-shadow: none; }
-
 .navLinks { display: flex; align-items: center; gap: 4px; }
 
 .navLink {
@@ -43,7 +41,6 @@
 
 .navLink:hover { color: var(--text); background: var(--surface2); border-color: var(--border); }
 .navLink.active { color: var(--accent); border-color: rgba(57,255,106,0.4); background: var(--accent-dim); }
-
 .navDivider { width: 1px; height: 24px; background: var(--border); margin: 0 8px; }
 
 .dataBtn {
@@ -57,11 +54,11 @@
   background: transparent;
   color: var(--text-muted);
   transition: all 0.2s;
+  cursor: pointer;
 }
 
 .dataBtn:hover { color: var(--accent); border-color: rgba(57,255,106,0.4); }
 
-/* MAIN */
 .main {
   flex: 1;
   max-width: 1400px;
@@ -70,7 +67,6 @@
   padding: 40px 40px 120px;
 }
 
-/* BOTTOM NAV */
 .bottomNav {
   display: none;
   position: fixed;
@@ -106,24 +102,9 @@
 }
 
 .tabActive .tabLabel { color: var(--accent); }
-.tabActive .tabIcon  { filter: drop-shadow(0 0 6px rgba(57,255,106,0.6)); }
+.tabActive .tabIcon { filter: drop-shadow(0 0 6px rgba(57,255,106,0.6)); }
 
 .importBtn { cursor: pointer; }
-
-.importToast {
-  position: fixed;
-  top: 80px;
-  right: 20px;
-  background: var(--surface);
-  border: 1px solid var(--accent);
-  color: var(--accent);
-  border-radius: 10px;
-  padding: 12px 20px;
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  z-index: 9000;
-  animation: fadeIn 0.3s ease;
-}
 
 .importToast {
   position: fixed;
@@ -142,17 +123,10 @@
 
 @keyframes toastSlide {
   from { opacity: 0; transform: translateY(-10px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* RESPONSIVE */
 @media (max-width: 768px) {
-  .nav { padding: 14px 16px; }
-  .navLinks { display: none; }
-  .bottomNav { display: flex; }
-  .main { padding: 20px 16px 100px; }
-  .logo { font-size: 22px; }
-}
   .nav { padding: 14px 16px; }
   .navLinks { display: none; }
   .bottomNav { display: flex; }
