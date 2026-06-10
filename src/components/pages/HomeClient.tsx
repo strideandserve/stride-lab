@@ -88,6 +88,12 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
     const padL=48,padR=20,padT=28,padB=32
     const cW=W-padL-padR, cH=H-padT-padB
 
+    const today = new Date()
+    const isCurrentMonth = today.getFullYear() === y && today.getMonth() + 1 === mo
+    // Only plot up to today if current month, otherwise plot full month
+    const lastDay = isCurrentMonth ? today.getDate() : days
+    const todayIdx = isCurrentMonth ? today.getDate() - 1 : -1
+
     const datasets = activeShoes.map((shoe,idx)=>{
       const color = SHOE_COLORS[idx%SHOE_COLORS.length]
       const daily = new Array(days).fill(0)
@@ -98,8 +104,9 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
       return { shoe, color, cum }
     })
 
-    const maxV = Math.max(...datasets.map(d=>d.cum[days-1]),1)
+    const maxV = Math.max(...datasets.map(d=>d.cum[lastDay-1]),1)
     const yMax = Math.ceil(maxV/5)*5||10
+    // X scale based on full month width but only plot to lastDay
     const xP = (i:number) => padL+i*(cW/(days-1))
     const yP = (v:number) => padT+cH-(v/yMax)*cH
 
@@ -113,36 +120,58 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
       ctx.fillStyle='#527a52'; ctx.font='10px DM Mono,monospace'; ctx.textAlign='right'
       ctx.fillText(v.toFixed(0),padL-6,y2+3)
     }
-    // X labels
+    // X labels — only show days up to lastDay
     ctx.fillStyle='#527a52'; ctx.font='10px DM Mono,monospace'; ctx.textAlign='center'
     for(let d=0;d<days;d++) {
       if(d===0||(d+1)%7===0||d===days-1) ctx.fillText(String(d+1),xP(d),H-padB+14)
     }
 
     datasets.forEach(({shoe,color,cum})=>{
-      // Area
+      // Area — only up to lastDay
       ctx.beginPath()
-      cum.forEach((v,i)=>i===0?ctx.moveTo(xP(i),yP(v)):ctx.lineTo(xP(i),yP(v)))
-      ctx.lineTo(xP(days-1),yP(0)); ctx.lineTo(xP(0),yP(0)); ctx.closePath()
+      for(let i=0;i<lastDay;i++) i===0?ctx.moveTo(xP(i),yP(cum[i])):ctx.lineTo(xP(i),yP(cum[i]))
+      ctx.lineTo(xP(lastDay-1),yP(0)); ctx.lineTo(xP(0),yP(0)); ctx.closePath()
       ctx.fillStyle=color+'18'; ctx.fill()
-      // Line
+      // Line — only up to lastDay
       ctx.beginPath()
-      cum.forEach((v,i)=>i===0?ctx.moveTo(xP(i),yP(v)):ctx.lineTo(xP(i),yP(v)))
+      for(let i=0;i<lastDay;i++) i===0?ctx.moveTo(xP(i),yP(cum[i])):ctx.lineTo(xP(i),yP(cum[i]))
       ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin='round'; ctx.stroke()
       // Run dots
       runs.filter(r=>r.shoe_id===shoe.id&&r.date&&getMonthKey(r.date)===activeMonth).forEach(r=>{
         const d=new Date(r.date+'T00:00:00').getDate()-1
+        if(d>=lastDay) return
         ctx.beginPath(); ctx.arc(xP(d),yP(cum[d]),4,0,Math.PI*2)
         ctx.fillStyle=color; ctx.fill()
         ctx.strokeStyle='#050a05'; ctx.lineWidth=2; ctx.stroke()
       })
-      // Shoe icon + label at endpoint
-      const ex=xP(days-1), ey=yP(cum[days-1])
+      // Shoe icon + label at last logged day
+      const ex=xP(lastDay-1), ey=yP(cum[lastDay-1])
       ctx.font='16px serif'; ctx.textAlign='center'
       ctx.fillText('👟',ex,ey-10)
       ctx.fillStyle=color; ctx.font='bold 10px DM Mono,monospace'
-      ctx.fillText(cum[days-1].toFixed(1)+' mi',ex,ey-24)
+      ctx.fillText(cum[lastDay-1].toFixed(1)+' mi',ex,ey-24)
     })
+
+    // TODAY vertical line
+    if(todayIdx >= 0) {
+      const tx = xP(todayIdx)
+      ctx.beginPath()
+      ctx.strokeStyle = 'rgba(57,255,106,0.5)'
+      ctx.lineWidth = 1
+      ctx.setLineDash([4, 3])
+      ctx.moveTo(tx, padT)
+      ctx.lineTo(tx, padT + cH)
+      ctx.stroke()
+      ctx.setLineDash([])
+      // "TODAY" label
+      ctx.fillStyle = 'var(--accent)'
+      ctx.font = 'bold 9px DM Mono,monospace'
+      ctx.textAlign = 'center'
+      // Check if too close to right edge
+      const labelX = tx + 20 > W - padR ? tx - 24 : tx + 24
+      ctx.fillStyle = '#39ff6a'
+      ctx.fillText('TODAY', labelX, padT + 10)
+    }
   }, [activeMonth, shoes, runs])
 
   return (
