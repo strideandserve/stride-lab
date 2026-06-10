@@ -1,0 +1,110 @@
+.wrap { max-width: 1400px; }
+
+.header { margin-bottom: 32px; }
+
+.greeting {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(48px,7vw,88px);
+  line-height: 0.9;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.greeting span { color: var(--accent); text-shadow: 0 0 30px rgba(57,255,106,0.35); }
+
+.sub {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+/* RECENT STRIP */
+.recentStrip {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 20px 24px; margin-bottom: 36px;
+}
+.recentLabel { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;white-space:nowrap;flex-shrink:0; }
+.recentDivider { width:1px;height:36px;background:var(--border);flex-shrink:0; }
+.recentInfo { flex:1;min-width:0; }
+.recentName { font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:4px; }
+.recentMeta { display:flex;gap:12px;flex-wrap:wrap;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:10px; }
+.recentBarLabel { display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:4px; }
+.recentBarTrack { height:4px;background:var(--surface2);border-radius:2px;overflow:hidden; }
+.recentBarFill { height:100%;border-radius:2px;transition:width 0.6s; }
+.recentDate { flex-shrink:0;text-align:right; }
+.recentDateLabel { display:block;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:2px; }
+.recentDateVal { font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent); }
+
+/* SECTION */
+.sectionHeader { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px; }
+.sectionTitle { font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--text-muted); }
+
+/* BEST GRID */
+.bestGrid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:0; }
+.bestCard { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px;position:relative;overflow:hidden; }
+.bestCard::before { content:'';position:absolute;top:0;left:0;right:0;height:2px; }
+.bestCard.daily::before { background:var(--daily);box-shadow:0 0 10px rgba(57,255,106,0.6); }
+.bestCard.speed::before { background:var(--speed); }
+.bestCard.race::before  { background:var(--race);  }
+.cardCat { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px; }
+.cardCat.daily { color:var(--daily); }
+.cardCat.speed { color:var(--speed); }
+.cardCat.race  { color:var(--race);  }
+.cardShoeRow { display:flex;align-items:center;gap:10px;margin-bottom:8px; }
+.cardShoeName { font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px; }
+.cardScoreRow { display:flex;align-items:baseline;gap:8px;margin-top:12px; }
+.cardScore { font-family:'Bebas Neue',sans-serif;font-size:46px;line-height:1; }
+.cardScoreLabel { font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace; }
+.cardEmpty { color:var(--text-dim);font-size:13px;margin-top:8px;font-style:italic; }
+
+/* MONTHLY CHART */
+.monthToggles { display:flex;gap:6px;flex-wrap:wrap; }
+.monthBtn { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:5px 10px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all 0.15s;text-transform:uppercase; }
+.monthBtn:hover { border-color:#3a503a;color:var(--text); }
+.monthActive { border-color:rgba(57,255,106,0.4)!important;color:var(--accent)!important;background:var(--accent-dim)!important; }
+.chartCard { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 20px 16px;margin-bottom:8px; }
+.chartEmpty { text-align:center;padding:40px;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:12px; }
+.chartLegend { display:flex;gap:16px;flex-wrap:wrap;margin-top:14px; }
+.legendItem { display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted); }
+.legendDot { width:8px;height:8px;border-radius:50%;flex-shrink:0; }
+
+/* PREDICTION */
+.predBanner { display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid rgba(57,255,106,0.2);border-radius:12px;padding:18px 22px;margin-bottom:16px; }
+.predDanger { border-color:rgba(255,71,71,0.3); }
+.predIcon { font-size:24px;flex-shrink:0; }
+.predText { flex:1;min-width:0; }
+.predLabel { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;margin-bottom:3px; }
+.predMain { font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;line-height:1.2; }
+.predSub { font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);margin-top:3px; }
+.predDate { font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--accent);flex-shrink:0; }
+
+/* GRAPH CARDS */
+.graphGrid { display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-top:8px; }
+.graphCard { background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px; }
+.graphCardHeader { display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px; }
+.graphName { font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px; }
+.graphMeta { font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);margin-top:2px; }
+.graphRight { display:flex;flex-direction:column;align-items:flex-end;gap:6px; }
+.graphTag { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;padding:3px 8px;border-radius:100px;border:1px solid;text-transform:uppercase; }
+.graphMiles { display:flex;align-items:baseline;gap:6px;margin-bottom:12px; }
+.graphMilesNum { font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1; }
+.graphMilesMax { font-family:'DM Mono',monospace;font-size:12px;color:var(--text-muted); }
+.progressTrack { height:4px;background:var(--surface2);border-radius:2px;overflow:hidden; }
+.progressFill { height:100%;border-radius:2px;transition:width 0.6s; }
+.warnBadge { display:inline-flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--red);background:rgba(255,71,71,0.08);border:1px solid rgba(255,71,71,0.2);border-radius:100px;padding:2px 8px;margin-top:4px; }
+
+.empty { text-align:center;padding:60px 20px;color:var(--text-dim); }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .bestGrid { grid-template-columns:1fr;gap:10px; }
+  .recentDivider, .recentLabel { display:none; }
+  .recentDate { display:none; }
+  .recentStrip { padding:16px; }
+  .graphGrid { grid-template-columns:1fr; }
+  .predDate { font-size:18px;width:100%; }
+  .monthToggles { gap:4px; }
+  .monthBtn { font-size:9px;padding:4px 7px; }
+}
