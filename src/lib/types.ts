@@ -45,6 +45,7 @@ export interface PlannedRun {
   date: string
   run_type: RunType
   planned_miles: number
+  target_pace: string | null
   shoe_id: string | null
   notes: string | null
   logged_run_id: string | null

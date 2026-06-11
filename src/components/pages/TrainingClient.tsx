@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { TrainingPlan, PlannedRun, Shoe, Run, RunType } from '@/lib/types'
-import { RUN_TYPE_LABELS, RUN_TYPE_COLORS, DAY_LABELS, catLabel, CAT_COLORS } from '@/lib/utils'
+import { RUN_TYPE_LABELS, RUN_TYPE_COLORS, DAY_LABELS, catLabel, CAT_COLORS, paceToSeconds } from '@/lib/utils'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
 import { toast } from '@/components/Toast'
@@ -47,6 +47,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   const [prDate, setPrDate]       = useState('')
   const [prType, setPrType]       = useState<RunType>('gen_aerobic')
   const [prMiles, setPrMiles]     = useState('')
+  const [prTargetPace, setPrTargetPace] = useState('')
   const [prShoe, setPrShoe]       = useState('')
   const [prNotes, setPrNotes]     = useState('')
   const [savingRun, setSavingRun] = useState(false)
@@ -139,12 +140,13 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   // ── PLANNED RUN CRUD
   function openAddRun(week: number, dayOfWeek: number, date: string) {
     setEditingPR(null); setPrWeek(week); setPrDay(dayOfWeek); setPrDate(date)
-    setPrType('gen_aerobic'); setPrMiles(''); setPrShoe(''); setPrNotes('')
+    setPrType('gen_aerobic'); setPrMiles(''); setPrTargetPace(''); setPrShoe(''); setPrNotes('')
     setRunModal(true)
   }
   function openEditRun(pr: PlannedRun) {
     setEditingPR(pr); setPrWeek(pr.week_number); setPrDay(pr.day_of_week); setPrDate(pr.date)
-    setPrType(pr.run_type); setPrMiles(String(pr.planned_miles)); setPrShoe(pr.shoe_id??''); setPrNotes(pr.notes??'')
+    setPrType(pr.run_type); setPrMiles(String(pr.planned_miles))
+    setPrTargetPace(pr.target_pace ?? ''); setPrShoe(pr.shoe_id??''); setPrNotes(pr.notes??'')
     setRunModal(true)
   }
   async function savePlannedRun() {
@@ -154,7 +156,8 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
     setSavingRun(true)
     const { data:{ session } } = await supabase.auth.getSession()
     const data = { plan_id:currentPlan.id, week_number:prWeek, day_of_week:prDay, date:prDate,
-      run_type:prType, planned_miles:mi, shoe_id:prShoe||null, notes:prNotes.trim()||null }
+      run_type:prType, planned_miles:mi, target_pace:prTargetPace.trim()||null,
+      shoe_id:prShoe||null, notes:prNotes.trim()||null }
     if (editingPR) {
       await supabase.from('planned_runs').update(data).eq('id', editingPR.id)
       toast('Run updated')
@@ -366,6 +369,28 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                               <span>{pr.planned_miles} mi</span>
                             )}
                           </div>
+
+                          {/* TARGET PACE + COMPARISON */}
+                          {pr.target_pace && (() => {
+                            const targetSecs = paceToSeconds(pr.target_pace)
+                            const actualSecs = loggedRun?.pace ? paceToSeconds(loggedRun.pace) : null
+                            let paceEl = <div className={styles.prTargetPace}>🎯 {pr.target_pace}/mi</div>
+                            if (actualSecs && targetSecs) {
+                              const diff = actualSecs - targetSecs
+                              const absDiff = Math.abs(diff)
+                              const mins = Math.floor(absDiff / 60)
+                              const secs = Math.round(absDiff % 60)
+                              const diffStr = mins > 0 ? `${mins}:${String(secs).padStart(2,'0')}` : `0:${String(secs).padStart(2,'0')}`
+                              if (diff < -5) {
+                                paceEl = <div className={styles.prPaceFaster}>⚡ {diffStr}/mi faster than target</div>
+                              } else if (diff > 5) {
+                                paceEl = <div className={styles.prPaceSlower}>↓ {diffStr}/mi slower than target</div>
+                              } else {
+                                paceEl = <div className={styles.prPaceOnTarget}>✓ Hit target pace</div>
+                              }
+                            }
+                            return paceEl
+                          })()}
                           {shoe && (
                             <div className={styles.prShoe}>
                               <BrandLogo brand={shoe.brand} size={14}/>
@@ -458,14 +483,15 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
         </FormGroup>
         <FormRow>
           <FormGroup><FormLabel>Planned Miles</FormLabel><FormInput type="number" step="0.1" placeholder="6.0" value={prMiles} onChange={e=>setPrMiles(e.target.value)}/></FormGroup>
-          <FormGroup>
-            <FormLabel>Shoe</FormLabel>
-            <FormSelect value={prShoe} onChange={e=>setPrShoe(e.target.value)}>
-              <option value="">No shoe assigned</option>
-              {shoes.map(s=><option key={s.id} value={s.id}>{s.brand} {s.name}</option>)}
-            </FormSelect>
-          </FormGroup>
+          <FormGroup><FormLabel>Target Pace (min/mi)</FormLabel><FormInput type="text" placeholder="7:30" value={prTargetPace} onChange={e=>setPrTargetPace(e.target.value)}/></FormGroup>
         </FormRow>
+        <FormGroup>
+          <FormLabel>Shoe</FormLabel>
+          <FormSelect value={prShoe} onChange={e=>setPrShoe(e.target.value)}>
+            <option value="">No shoe assigned</option>
+            {shoes.map(s=><option key={s.id} value={s.id}>{s.brand} {s.name}</option>)}
+          </FormSelect>
+        </FormGroup>
         <FormGroup><FormLabel>Notes (optional)</FormLabel><FormInput placeholder="Easy effort, conversational pace" value={prNotes} onChange={e=>setPrNotes(e.target.value)}/></FormGroup>
         <FormActions>
           <Btn variant="ghost" onClick={()=>setRunModal(false)}>Cancel</Btn>

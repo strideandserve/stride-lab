@@ -81,6 +81,11 @@
 .prUnloggedBadge { font-family:'DM Mono',monospace;font-size:9px;color:var(--red);letter-spacing:0.5px;margin-top:2px; }
 .prNotes { font-family:'DM Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:3px;font-style:italic; }
 
+.prTargetPace  { font-family:'DM Mono',monospace;font-size:9px;color:var(--text-muted);margin-top:3px; }
+.prPaceFaster  { font-family:'DM Mono',monospace;font-size:9px;color:var(--accent);margin-top:3px;font-weight:600; }
+.prPaceSlower  { font-family:'DM Mono',monospace;font-size:9px;color:var(--red);margin-top:3px; }
+.prPaceOnTarget { font-family:'DM Mono',monospace;font-size:9px;color:#47c8ff;margin-top:3px;font-weight:600; }
+
 .addRunBtn {
   width:100%;padding:6px;border-radius:6px;border:1px dashed var(--border);
   background:transparent;color:var(--text-dim);font-family:'DM Mono',monospace;
