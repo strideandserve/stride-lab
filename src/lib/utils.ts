@@ -90,6 +90,8 @@ export const RUN_TYPE_COLORS: Record<string,string> = {
 }
 
 export const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+
+export const CAT_COLORS: Record<string, string> = {
   daily: '#39ff6a',
   speed: '#ff6b35',
   race:  '#a8ff3e',
