@@ -5,10 +5,11 @@ import { createClient } from '@/lib/supabase'
 import styles from './AppShell.module.css'
 
 const TABS = [
-  { id: 'home',     href: '/app',          icon: '🏠', label: 'Home'     },
-  { id: 'locker',   href: '/app/locker',   icon: '👟', label: 'Locker'   },
-  { id: 'rankings', href: '/app/rankings', icon: '🏆', label: 'Rankings' },
-  { id: 'races',    href: '/app/races',    icon: '🏁', label: 'Races'    },
+  { id: 'home',     href: '/app',           icon: '🏠', label: 'Home'     },
+  { id: 'locker',   href: '/app/locker',    icon: '👟', label: 'Locker'   },
+  { id: 'training', href: '/app/training',  icon: '📋', label: 'Training' },
+  { id: 'rankings', href: '/app/rankings',  icon: '🏆', label: 'Rankings' },
+  { id: 'races',    href: '/app/races',     icon: '🏁', label: 'Races'    },
 ]
 
 export default function AppShell({ children, userName }: { children: React.ReactNode; userName: string }) {

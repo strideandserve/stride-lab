@@ -22,7 +22,33 @@ export interface Shoe {
   created_at: string
 }
 
-export interface UpcomingRace {
+export type RunType = 'recovery' | 'recovery_strides' | 'gen_aerobic' | 'med_long' | 'lt_run' | 'tempo' | 'long_run' | 'speed_intervals'
+
+export interface TrainingPlan {
+  id: string
+  user_id: string
+  name: string
+  goal: string | null
+  start_date: string
+  weeks: number
+  active: boolean
+  created_at: string
+}
+
+export interface PlannedRun {
+  id: string
+  user_id: string
+  plan_id: string
+  week_number: number
+  day_of_week: number
+  date: string
+  run_type: RunType
+  planned_miles: number
+  shoe_id: string | null
+  notes: string | null
+  logged_run_id: string | null
+  created_at: string
+}
   id: string
   user_id: string
   name: string

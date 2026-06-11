@@ -2,15 +2,22 @@
 import { useState, useRef, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
-import type { Shoe, Run, UpcomingRace } from '@/lib/types'
-import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel } from '@/lib/utils'
+import type { Shoe, Run, UpcomingRace, TrainingPlan, PlannedRun } from '@/lib/types'
+import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, RUN_TYPE_LABELS, RUN_TYPE_COLORS } from '@/lib/utils'
 import BrandLogo from '@/components/BrandLogo'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
 import { toast } from '@/components/Toast'
 import styles from './HomeClient.module.css'
 
-interface Props { shoes: Shoe[]; runs: Run[]; userName: string; upcomingRaces: UpcomingRace[] }
+interface Props {
+  shoes: Shoe[]
+  runs: Run[]
+  userName: string
+  upcomingRaces: UpcomingRace[]
+  activePlan: TrainingPlan | null
+  plannedRuns: PlannedRun[]
+}
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const SHOE_COLORS = ['#39ff6a','#ff6b35','#a8ff3e','#47c8ff','#ff47a0','#ffcc00','#b347ff','#ff4747']
@@ -47,7 +54,7 @@ function predictReplacement(shoe: Shoe, runs: Run[]) {
   return { overdue:false, shoe, totalMi, maxMi, miLeft:miLeft.toFixed(1), daily:daily.toFixed(2), daysLeft, dateStr:dt.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) }
 }
 
-export default function HomeClient({ shoes, runs, userName, upcomingRaces: initRaces }: Props) {
+export default function HomeClient({ shoes, runs, userName, upcomingRaces: initRaces, activePlan, plannedRuns }: Props) {
   const router     = useRouter()
   const supabase   = createClient()
   const [, startTransition] = useTransition()
@@ -153,6 +160,33 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
   const projSpeed = projectSpend('speed')
   const projRace  = projectSpend('race')
   const totalProj = projDaily + projSpeed + projRace
+
+  // ── TRAINING PLAN WIDGET
+  function getCurrentWeekNum(plan: TrainingPlan) {
+    const start = new Date(plan.start_date + 'T00:00:00')
+    const diff  = Math.floor((today.getTime() - start.getTime()) / (7 * 864e5))
+    return Math.max(1, Math.min(plan.weeks, diff + 1))
+  }
+
+  const currentWeekNum   = activePlan ? getCurrentWeekNum(activePlan) : null
+  const thisWeekRuns     = activePlan && currentWeekNum
+    ? plannedRuns.filter(r => r.plan_id === activePlan.id && r.week_number === currentWeekNum)
+    : []
+  const thisWeekLogged   = thisWeekRuns.filter(r => r.logged_run_id).length
+  const thisWeekTotal    = thisWeekRuns.length
+  const thisWeekMiPlan   = thisWeekRuns.reduce((a, r) => a + r.planned_miles, 0)
+  const thisWeekMiLogged = thisWeekRuns.filter(r => r.logged_run_id).reduce((a, r) => {
+    const actual = runs.find(x => x.id === r.logged_run_id)
+    return a + (actual?.miles ?? r.planned_miles)
+  }, 0)
+
+  // Next unlogged run from today forward
+  const todayStr    = today.toISOString().split('T')[0]
+  const nextWorkout = activePlan
+    ? plannedRuns.filter(r => r.plan_id === activePlan.id && !r.logged_run_id && r.date >= todayStr)
+        .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null
+    : null
+  const nextShoe = nextWorkout?.shoe_id ? shoes.find(s => s.id === nextWorkout.shoe_id) : null
 
   // Best by category
   function bestShoe(cat: string) {
@@ -445,6 +479,45 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
             <span className={styles.recentDateLabel}>LAST RUN</span>
             <span className={styles.recentDateVal}>{new Date(latestRun.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
           </div>
+        </div>
+      )}
+
+      {/* TRAINING PLAN WIDGET */}
+      {activePlan && (
+        <div className={styles.trainingWidget}>
+          <div className={styles.trainingWidgetLeft}>
+            <div className={styles.trainingWidgetLabel}>Active Plan</div>
+            <div className={styles.trainingWidgetName}>{activePlan.name}</div>
+            <div className={styles.trainingWidgetWeek}>Week {currentWeekNum} of {activePlan.weeks}</div>
+            <div className={styles.trainingWidgetProgress}>
+              <div className={styles.trainingProgressBar}>
+                <div className={styles.trainingProgressFill} style={{width:`${thisWeekTotal>0?(thisWeekLogged/thisWeekTotal)*100:0}%`}}/>
+              </div>
+              <div className={styles.trainingProgressLabel}>
+                {thisWeekLogged}/{thisWeekTotal} runs · {thisWeekMiLogged.toFixed(1)}/{thisWeekMiPlan.toFixed(1)} mi this week
+              </div>
+            </div>
+          </div>
+          {nextWorkout && (
+            <div className={styles.trainingWidgetNext}>
+              <div className={styles.trainingWidgetNextLabel}>Next Workout</div>
+              <div className={styles.trainingWidgetNextType} style={{color: RUN_TYPE_COLORS[nextWorkout.run_type] || 'var(--accent)'}}>
+                {RUN_TYPE_LABELS[nextWorkout.run_type]}
+              </div>
+              <div className={styles.trainingWidgetNextMeta}>
+                {nextWorkout.planned_miles} mi · {new Date(nextWorkout.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}
+              </div>
+              {nextShoe && (
+                <div className={styles.trainingWidgetNextShoe}>
+                  <BrandLogo brand={nextShoe.brand} size={14}/>
+                  <span>{nextShoe.name}</span>
+                </div>
+              )}
+            </div>
+          )}
+          <button className={styles.trainingWidgetBtn} onClick={()=>router.push('/app/training')}>
+            View Plan →
+          </button>
         </div>
       )}
 

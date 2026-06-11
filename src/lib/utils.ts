@@ -67,7 +67,29 @@ export function raceTypeLabel(type: string | null): string {
   return { marathon: 'Marathon', half: 'Half Marathon', ten_k: '10K', five_k: '5K', other: 'Race' }[type] ?? 'Race'
 }
 
-export const CAT_COLORS: Record<string, string> = {
+export const RUN_TYPE_LABELS: Record<string,string> = {
+  recovery:          'Recovery',
+  recovery_strides:  'Recovery + Strides',
+  gen_aerobic:       'Gen Aerobic',
+  med_long:          'Med-Long Run',
+  lt_run:            'LT Run',
+  tempo:             'Tempo Run',
+  long_run:          'Long Run',
+  speed_intervals:   'Speed / Intervals',
+}
+
+export const RUN_TYPE_COLORS: Record<string,string> = {
+  recovery:          '#527a52',
+  recovery_strides:  '#6aaa6a',
+  gen_aerobic:       '#39ff6a',
+  med_long:          '#a8ff3e',
+  lt_run:            '#ffcc00',
+  tempo:             '#ff6b35',
+  long_run:          '#47c8ff',
+  speed_intervals:   '#ff47a0',
+}
+
+export const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
   daily: '#39ff6a',
   speed: '#ff6b35',
   race:  '#a8ff3e',

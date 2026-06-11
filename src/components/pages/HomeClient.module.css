@@ -97,6 +97,27 @@
 
 .empty { text-align:center;padding:60px 20px;color:var(--text-dim); }
 
+/* TRAINING WIDGET */
+.trainingWidget {
+  display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid rgba(57,255,106,0.2);
+  border-radius:12px;padding:20px 24px;margin-bottom:32px;
+}
+.trainingWidgetLeft { flex:1;min-width:200px; }
+.trainingWidgetLabel { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px; }
+.trainingWidgetName  { font-family:'Bebas Neue',sans-serif;font-size:24px;letter-spacing:1px;margin-bottom:2px; }
+.trainingWidgetWeek  { font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);margin-bottom:12px; }
+.trainingProgressBar  { height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:6px; }
+.trainingProgressFill { height:100%;background:var(--accent);border-radius:2px;transition:width 0.6s; }
+.trainingProgressLabel { font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted); }
+.trainingWidgetNext { flex-shrink:0;text-align:right; }
+.trainingWidgetNextLabel { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px; }
+.trainingWidgetNextType  { font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;line-height:1.1; }
+.trainingWidgetNextMeta  { font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted);margin-top:3px; }
+.trainingWidgetNextShoe  { display:flex;align-items:center;gap:5px;justify-content:flex-end;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:4px; }
+.trainingWidgetBtn { font-family:'DM Mono',monospace;font-size:11px;letter-spacing:1px;color:var(--accent);background:transparent;border:1px solid rgba(57,255,106,0.3);border-radius:6px;padding:10px 16px;cursor:pointer;transition:all 0.15s;white-space:nowrap;flex-shrink:0; }
+.trainingWidgetBtn:hover { background:var(--accent-dim); }
+
 /* RACE COUNTDOWNS */
 .raceCountdownSection { margin-bottom: 8px; }
 .raceCountdownEmpty { font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);padding:20px 0; }
