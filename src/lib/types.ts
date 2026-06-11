@@ -49,6 +49,8 @@ export interface PlannedRun {
   logged_run_id: string | null
   created_at: string
 }
+
+export interface UpcomingRace {
   id: string
   user_id: string
   name: string
