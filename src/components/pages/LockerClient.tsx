@@ -31,6 +31,7 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
   const [shoeSize, setShoeSize]     = useState('')
   const [shoeWide, setShoeWide]     = useState('standard')
   const [shoePrice, setShoePrice]   = useState('')
+  const [shoeRetired, setShoeRetired] = useState(false)
   const [savingShoe, setSavingShoe] = useState(false)
 
   // ── Run modal state
@@ -60,14 +61,15 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
   // ── SHOE HELPERS
   function openAddShoe() {
     setEditingShoe(null); setShoeName(''); setShoeBrand(''); setShoeCat('daily')
-    setShoeMax('350'); setShoeStart('0'); setShoeSize(''); setShoeWide('standard'); setShoePrice('')
+    setShoeMax('350'); setShoeStart('0'); setShoeSize(''); setShoeWide('standard')
+    setShoePrice(''); setShoeRetired(false)
     setShoeModal(true)
   }
   function openEditShoe(shoe: Shoe) {
     setEditingShoe(shoe); setShoeName(shoe.name); setShoeBrand(shoe.brand)
     setShoeCat(shoe.category); setShoeMax(String(shoe.max_miles)); setShoeStart(String(shoe.start_miles||0))
     setShoeSize(shoe.size ? String(shoe.size) : ''); setShoeWide(shoe.wide || 'standard')
-    setShoePrice(shoe.price ? String(shoe.price) : '')
+    setShoePrice(shoe.price ? String(shoe.price) : ''); setShoeRetired(shoe.retired || false)
     setShoeModal(true)
   }
   async function saveShoe() {
@@ -76,7 +78,7 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
     const data = { name:shoeName.trim(), brand:shoeBrand.trim()||'Unknown', category:shoeCat,
       max_miles:parseFloat(shoeMax)||350, start_miles:parseFloat(shoeStart)||0,
       size:shoeSize?parseFloat(shoeSize):null, wide:shoeWide,
-      price:shoePrice?parseFloat(shoePrice):null }
+      price:shoePrice?parseFloat(shoePrice):null, retired:shoeRetired }
     if (editingShoe) {
       await supabase.from('shoes').update(data).eq('id',editingShoe.id)
       toast(`${shoeName} updated`)
@@ -156,6 +158,99 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
     toast('Run removed'); refresh()
   }
 
+  async function quickRetire(shoe: Shoe) {
+    await supabase.from('shoes').update({ retired: !shoe.retired }).eq('id', shoe.id)
+    toast(shoe.retired ? `${shoe.name} restored` : `${shoe.name} retired`); refresh()
+  }
+
+  function renderShoeCard(shoe: Shoe) {
+    const runs     = initRuns.filter(r=>r.shoe_id===shoe.id)
+    const totalMi  = (shoe.start_miles||0)+runs.reduce((a,r)=>a+(r.miles||0),0)
+    const maxMi    = shoe.max_miles||400
+    const pct      = Math.min(100,totalMi/maxMi*100)
+    const danger   = pct>=85
+    const score    = computeCompositeScore(runs)
+    const sorted   = [...runs].sort((a,b)=>new Date(a.date).getTime()-new Date(b.date).getTime())
+    const firstRun = sorted[0]
+    const firstDate = firstRun ? new Date(firstRun.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : null
+    const expanded = openRuns[shoe.id]
+
+    return (
+      <div key={shoe.id} className={`${styles.card} ${shoe.retired ? styles.cardRetired : ''}`}>
+        <div className={styles.cardHeader}>
+          <div className={styles.cardAccent} style={{background: shoe.retired ? '#444' : CAT_COLORS[shoe.category]}}/>
+          <div className={styles.cardTopRow}>
+            <div>
+              <div className={styles.cardName}>
+                {shoe.name}
+                {shoe.retired && <span className={styles.retiredBadge}>Retired</span>}
+              </div>
+              <div className={styles.cardBrand}>
+                {shoe.brand} · {catLabel(shoe.category)}
+                {shoe.size && <span className={styles.sizeBadge}>US {shoe.size}{shoe.wide==='wide'?' · Wide':''}</span>}
+                {shoe.price && <span className={styles.sizeBadge}>${shoe.price}</span>}
+              </div>
+            </div>
+            <BrandLogo brand={shoe.brand} size={34}/>
+          </div>
+          {firstDate && <div className={styles.firstDate}>📅 First run {firstDate}</div>}
+          <div className={styles.stats}>
+            <div className={styles.stat}><div className={styles.statVal}>{totalMi.toFixed(1)}</div><div className={styles.statLabel}>Miles</div></div>
+            <div className={styles.stat}><div className={styles.statVal}>{runs.length}</div><div className={styles.statLabel}>Runs</div></div>
+            <div className={styles.stat}><div className={styles.statVal}>{score??'—'}</div><div className={styles.statLabel}>Score</div></div>
+          </div>
+        </div>
+        <div className={styles.cardBody}>
+          <div className={styles.progLabel}>
+            <span>{totalMi.toFixed(1)} mi used</span>
+            <span>{shoe.retired ? 'Retired' : danger ? '⚠ Near limit' : `${(maxMi-totalMi).toFixed(1)} mi left`}</span>
+          </div>
+          <div className={styles.progTrack}>
+            <div className={styles.progFill} style={{width:`${pct}%`,background:shoe.retired?'#555':danger?'var(--red)':CAT_COLORS[shoe.category]}}/>
+          </div>
+          <div className={styles.actions}>
+            {!shoe.retired && <Btn variant="accent" onClick={()=>openLogRun(shoe)}>+ Log Run</Btn>}
+            <Btn variant="ghost" onClick={()=>setOpenRuns(p=>({...p,[shoe.id]:!p[shoe.id]}))}>Runs ({runs.length})</Btn>
+            <Btn variant="ghost" onClick={()=>openEditShoe(shoe)}>Edit</Btn>
+            <Btn variant="ghost" onClick={()=>quickRetire(shoe)} style={{color: shoe.retired ? 'var(--accent)' : 'var(--warn)'}}>
+              {shoe.retired ? 'Restore' : 'Retire'}
+            </Btn>
+            <Btn variant="danger" onClick={()=>deleteShoe(shoe.id)}>Delete</Btn>
+          </div>
+          {expanded && (
+            <div className={styles.runsList}>
+              {runs.length===0 ? (
+                <div className={styles.noRuns}>No runs logged yet</div>
+              ) : [...runs].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime()).map(r => (
+                <div key={r.id} className={styles.runItem}>
+                  <div className={styles.runRow}>
+                    <span className={styles.runDate}>{r.date}</span>
+                    <span>{r.miles} mi</span>
+                    <span>{r.pace?`${r.pace}/mi`:'—'} · {r.hr?`${r.hr} bpm`:'—'}</span>
+                    <span style={{color:'var(--accent)'}}>{r.comfort}/10</span>
+                    <span style={{display:'flex',gap:6}}>
+                      <button className={styles.runEditBtn} onClick={()=>openEditRun(r)}>EDIT</button>
+                      <button className={styles.runDelBtn} onClick={()=>deleteRun(r.id)}>✕</button>
+                    </span>
+                  </div>
+                  {r.elevation!=null||r.temp!=null ? (
+                    <div className={styles.runExtra}>
+                      {r.elevation!=null&&<span>↑{r.elevation}ft</span>}
+                      {r.temp!=null&&<span>{r.temp}°F</span>}
+                      {r.humidity!=null&&<span>{r.humidity}%</span>}
+                      {r.location&&<span>📍{r.location}</span>}
+                    </div>
+                  ):null}
+                  {r.is_race&&<div className={styles.raceBadge}>🏁 {r.race_name||'Race'} · {raceTypeLabel(r.race_type)}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className={styles.wrap}>
       <div className={styles.header}>
@@ -166,90 +261,22 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
       {initShoes.length===0 ? (
         <div className={styles.empty}><div>👟</div><div>Locker is Empty</div><div>Add your first pair to start tracking</div></div>
       ) : (
-        <div className={styles.grid}>
-          {initShoes.map(shoe => {
-            const runs = initRuns.filter(r=>r.shoe_id===shoe.id)
-            const totalMi = (shoe.start_miles||0)+runs.reduce((a,r)=>a+(r.miles||0),0)
-            const maxMi   = shoe.max_miles||400
-            const pct     = Math.min(100,totalMi/maxMi*100)
-            const danger  = pct>=85
-            const score   = computeCompositeScore(runs)
-            const sorted  = [...runs].sort((a,b)=>new Date(a.date).getTime()-new Date(b.date).getTime())
-            const firstRun = sorted[0]
-            const firstDate = firstRun ? new Date(firstRun.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : null
-            const expanded = openRuns[shoe.id]
-
-            return (
-              <div key={shoe.id} className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.cardAccent} style={{background:CAT_COLORS[shoe.category]}}/>
-                  <div className={styles.cardTopRow}>
-                    <div>
-                      <div className={styles.cardName}>{shoe.name}</div>
-                      <div className={styles.cardBrand}>
-                        {shoe.brand} · {catLabel(shoe.category)}
-                        {shoe.size && <span className={styles.sizeBadge}>US {shoe.size}{shoe.wide==='wide'?' · Wide':''}</span>}
-                        {shoe.price && <span className={styles.sizeBadge}>${shoe.price}</span>}
-                      </div>
-                    </div>
-                    <BrandLogo brand={shoe.brand} size={34}/>
-                  </div>
-                  {firstDate && <div className={styles.firstDate}>📅 First run {firstDate}</div>}
-                  <div className={styles.stats}>
-                    <div className={styles.stat}><div className={styles.statVal}>{totalMi.toFixed(1)}</div><div className={styles.statLabel}>Miles</div></div>
-                    <div className={styles.stat}><div className={styles.statVal}>{runs.length}</div><div className={styles.statLabel}>Runs</div></div>
-                    <div className={styles.stat}><div className={styles.statVal}>{score??'—'}</div><div className={styles.statLabel}>Score</div></div>
-                  </div>
-                </div>
-                <div className={styles.cardBody}>
-                  <div className={styles.progLabel}>
-                    <span>{totalMi.toFixed(1)} mi used</span>
-                    <span>{danger?'⚠ Near limit':`${(maxMi-totalMi).toFixed(1)} mi left`}</span>
-                  </div>
-                  <div className={styles.progTrack}>
-                    <div className={styles.progFill} style={{width:`${pct}%`,background:danger?'var(--red)':CAT_COLORS[shoe.category]}}/>
-                  </div>
-                  <div className={styles.actions}>
-                    <Btn variant="accent" onClick={()=>openLogRun(shoe)}>+ Log Run</Btn>
-                    <Btn variant="ghost"  onClick={()=>setOpenRuns(p=>({...p,[shoe.id]:!p[shoe.id]}))}>Runs ({runs.length})</Btn>
-                    <Btn variant="ghost"  onClick={()=>openEditShoe(shoe)}>Edit</Btn>
-                    <Btn variant="danger" onClick={()=>deleteShoe(shoe.id)}>Delete</Btn>
-                  </div>
-
-                  {expanded && (
-                    <div className={styles.runsList}>
-                      {runs.length===0 ? (
-                        <div className={styles.noRuns}>No runs logged yet</div>
-                      ) : [...runs].sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime()).map(r => (
-                        <div key={r.id} className={styles.runItem}>
-                          <div className={styles.runRow}>
-                            <span className={styles.runDate}>{r.date}</span>
-                            <span>{r.miles} mi</span>
-                            <span>{r.pace?`${r.pace}/mi`:'—'} · {r.hr?`${r.hr} bpm`:'—'}</span>
-                            <span style={{color:'var(--accent)'}}>{r.comfort}/10</span>
-                            <span style={{display:'flex',gap:6}}>
-                              <button className={styles.runEditBtn} onClick={()=>openEditRun(r)}>EDIT</button>
-                              <button className={styles.runDelBtn} onClick={()=>deleteRun(r.id)}>✕</button>
-                            </span>
-                          </div>
-                          {r.elevation!=null||r.temp!=null ? (
-                            <div className={styles.runExtra}>
-                              {r.elevation!=null&&<span>↑{r.elevation}ft</span>}
-                              {r.temp!=null&&<span>{r.temp}°F</span>}
-                              {r.humidity!=null&&<span>{r.humidity}%</span>}
-                              {r.location&&<span>📍{r.location}</span>}
-                            </div>
-                          ):null}
-                          {r.is_race&&<div className={styles.raceBadge}>🏁 {r.race_name||'Race'} · {raceTypeLabel(r.race_type)}</div>}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+        <>
+          <div className={styles.grid}>
+            {initShoes.filter(s=>!s.retired).map(shoe => renderShoeCard(shoe))}
+          </div>
+          {initShoes.some(s=>s.retired) && (
+            <>
+              <div className={styles.retiredHeader}>
+                <div className={styles.retiredTitle}>🪦 Retired Shoes</div>
+                <div className={styles.retiredSub}>Run history preserved · not counted in active forecasts</div>
               </div>
-            )
-          })}
-        </div>
+              <div className={styles.grid}>
+                {initShoes.filter(s=>s.retired).map(shoe => renderShoeCard(shoe))}
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {/* ADD / EDIT SHOE MODAL */}
@@ -276,6 +303,10 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
           <FormGroup><FormLabel>Fit</FormLabel><FormSelect value={shoeWide} onChange={e=>setShoeWide(e.target.value)}><option value="standard">Standard</option><option value="wide">Wide</option></FormSelect></FormGroup>
         </FormRow>
         <FormGroup><FormLabel>Price Paid ($)</FormLabel><FormInput type="number" step="0.01" placeholder="160.00" value={shoePrice} onChange={e=>setShoePrice(e.target.value)}/></FormGroup>
+        <div className={styles.retireToggleRow} onClick={()=>setShoeRetired(!shoeRetired)}>
+          <div className={`${styles.retireToggleBox} ${shoeRetired?styles.retireToggleOn:''}`}>✓</div>
+          <div className={styles.retireToggleLabel}>This shoe is retired — hide from active locker &amp; home page</div>
+        </div>
         <FormActions>
           <Btn variant="ghost" onClick={()=>setShoeModal(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={saveShoe} disabled={savingShoe}>{savingShoe?'Saving…':editingShoe?'Save Changes':'Add Shoe'}</Btn>

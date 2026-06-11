@@ -18,6 +18,7 @@ export interface Shoe {
   size: number | null
   wide: string
   price: number | null
+  retired: boolean
   added_date: string
   created_at: string
 }

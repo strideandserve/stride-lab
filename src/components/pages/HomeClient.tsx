@@ -76,13 +76,12 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
 
   const totalMiles = runs.reduce((a,r)=>a+(r.miles||0),0)
 
-  // Shoes active in the past 12 months
-  const oneYearAgo = new Date()
-  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-  const activeShoeIds = new Set(
-    runs.filter(r => r.date && new Date(r.date + 'T00:00:00') >= oneYearAgo).map(r => r.shoe_id)
+  // Filter out retired shoes everywhere on home page
+  const activeShoes = shoes.filter(s => !s.retired)
+  const oneYearAgo  = new Date(); oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+  const recentShoes = activeShoes.filter(s =>
+    runs.some(r => r.shoe_id === s.id && r.date && new Date(r.date + 'T00:00:00') >= oneYearAgo)
   )
-  const recentShoes = shoes.filter(s => activeShoeIds.has(s.id) || runs.some(r => r.shoe_id === s.id))
 
   // ── RACE CRUD
   function openAddRace() {
@@ -192,18 +191,18 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
 
   // Best by category
   function bestShoe(cat: string) {
-    const scored = shoes.filter(s=>s.category===cat).map(s=>({
+    const scored = activeShoes.filter(s=>s.category===cat).map(s=>({
       s, score: computeCompositeScore(runs.filter(r=>r.shoe_id===s.id))
     })).filter(x=>x.score!==null).sort((a,b)=>(b.score!-a.score!))
     return scored[0] ?? null
   }
 
-  // Most recent shoe
-  const latestRun = [...runs].filter(r=>r.date&&r.shoe_id).sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime())[0]
-  const recentShoe = latestRun ? shoes.find(s=>s.id===latestRun.shoe_id) : null
+  // Most recent shoe — only from active (non-retired) shoes
+  const latestRun  = [...runs].filter(r=>r.date&&r.shoe_id&&activeShoes.some(s=>s.id===r.shoe_id)).sort((a,b)=>new Date(b.date).getTime()-new Date(a.date).getTime())[0]
+  const recentShoe = latestRun ? activeShoes.find(s=>s.id===latestRun.shoe_id) : null
 
-  // Predictions
-  const preds = shoes.filter(s=>s.category==='daily').map(s=>predictReplacement(s,runs.filter(r=>r.shoe_id===s.id))).filter(Boolean) as ReturnType<typeof predictReplacement>[]
+  // Predictions — only active daily shoes
+  const preds   = activeShoes.filter(s=>s.category==='daily').map(s=>predictReplacement(s,runs.filter(r=>r.shoe_id===s.id))).filter(Boolean) as ReturnType<typeof predictReplacement>[]
   const overdue  = preds.filter(p=>p?.overdue)
   const upcoming = preds.filter(p=>!p?.overdue).sort((a,b)=>(a!.daysLeft??0)-(b!.daysLeft??0))
 
@@ -730,9 +729,9 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
 
       {/* MILEAGE GRAPH CARDS */}
       <div className={styles.graphGrid}>
-        {shoes.length===0 ? (
+        {activeShoes.length===0 ? (
           <div className={styles.empty}><div>👟</div><div>No Shoes Yet</div><div>Add shoes in the Shoe Locker</div></div>
-        ) : shoes.map(shoe => {
+        ) : activeShoes.map(shoe => {
           const sr = runs.filter(r=>r.shoe_id===shoe.id)
           const totalMi = (shoe.start_miles||0)+sr.reduce((a,r)=>a+(r.miles||0),0)
           const pct = Math.min(100,totalMi/shoe.max_miles*100)
