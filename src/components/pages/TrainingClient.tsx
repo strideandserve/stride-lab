@@ -61,6 +61,12 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   const [logNotes, setLogNotes]   = useState('')
   const [savingLog, setSavingLog] = useState(false)
 
+  // Link existing run modal
+  const [linkModal, setLinkModal]   = useState(false)
+  const [linkPR, setLinkPR]         = useState<PlannedRun | null>(null)
+  const [linkRunId, setLinkRunId]   = useState('')
+  const [savingLink, setSavingLink] = useState(false)
+
   const currentPlan = plans.find(p => p.id === selectedPlanId) ?? activePlan
 
   // Get planned runs for current plan
@@ -185,10 +191,24 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
     toast(`${mi} mi logged`); setSavingLog(false); setLogModal(false); refresh()
   }
   async function unlogRun(pr: PlannedRun) {
-    if (!confirm('Remove the logged run from this planned run?')) return
-    if (pr.logged_run_id) await supabase.from('runs').delete().eq('id', pr.logged_run_id)
+    if (!confirm('Unlink this run from the planned slot? The run will stay in your shoe locker.')) return
     await supabase.from('planned_runs').update({ logged_run_id: null }).eq('id', pr.id)
-    toast('Run un-logged'); refresh()
+    toast('Run unlinked'); refresh()
+  }
+
+  // ── LINK EXISTING RUN
+  function openLinkRun(pr: PlannedRun) {
+    setLinkPR(pr)
+    // Pre-select a run from the same date if one exists
+    const sameDay = runs.filter(r => r.date === pr.date)
+    setLinkRunId(sameDay[0]?.id ?? '')
+    setLinkModal(true)
+  }
+  async function saveLinkRun() {
+    if (!linkRunId || !linkPR) return toast('Select a run to link', 'error')
+    setSavingLink(true)
+    await supabase.from('planned_runs').update({ logged_run_id: linkRunId }).eq('id', linkPR.id)
+    toast('Run linked'); setSavingLink(false); setLinkModal(false); refresh()
   }
 
   // Build week dates
@@ -333,7 +353,8 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                           <div className={styles.prTop}>
                             <span className={styles.prType} style={{color}}>{RUN_TYPE_LABELS[pr.run_type]}</span>
                             <div className={styles.prActions}>
-                              {!isLogged && <button className={styles.prLogBtn} onClick={()=>openLogRun(pr)} title="Log this run">✓</button>}
+                              {!isLogged && <button className={styles.prLogBtn} onClick={()=>openLogRun(pr)} title="Log new run">✓</button>}
+                              {!isLogged && <button className={styles.prLinkBtn} onClick={()=>openLinkRun(pr)} title="Link existing run">🔗</button>}
                               <button className={styles.prEditBtn} onClick={()=>openEditRun(pr)} title="Edit">✏</button>
                               <button className={styles.prDelBtn} onClick={()=>deletePlannedRun(pr.id)} title="Delete">✕</button>
                             </div>
@@ -473,6 +494,50 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
         <FormActions>
           <Btn variant="ghost" onClick={()=>setLogModal(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={saveLoggedRun} disabled={savingLog}>{savingLog?'Saving…':'Log Run'}</Btn>
+        </FormActions>
+      </Modal>
+      {/* LINK EXISTING RUN MODAL */}
+      <Modal open={linkModal} onClose={()=>setLinkModal(false)} title="Link Existing Run">
+        {linkPR && (
+          <div className={styles.modalSubLabel}>
+            {RUN_TYPE_LABELS[linkPR.run_type]} · {linkPR.date} · {linkPR.planned_miles} mi planned
+          </div>
+        )}
+        <FormGroup>
+          <FormLabel>Select a run to link</FormLabel>
+          <FormSelect value={linkRunId} onChange={e=>setLinkRunId(e.target.value)}>
+            <option value="">— Choose a run —</option>
+            {[...runs]
+              .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .map(r => {
+                const shoe = shoes.find(s => s.id === r.shoe_id)
+                const alreadyLinked = plannedRuns.some(p => p.logged_run_id === r.id)
+                return (
+                  <option key={r.id} value={r.id} disabled={alreadyLinked}>
+                    {r.date} · {r.miles} mi{r.pace ? ` · ${r.pace}/mi` : ''}{shoe ? ` · ${shoe.name}` : ''}{alreadyLinked ? ' (already linked)' : ''}
+                  </option>
+                )
+              })
+            }
+          </FormSelect>
+        </FormGroup>
+        {linkRunId && (() => {
+          const r = runs.find(x => x.id === linkRunId)
+          const shoe = r ? shoes.find(s => s.id === r.shoe_id) : null
+          if (!r) return null
+          return (
+            <div className={styles.linkPreview}>
+              <div className={styles.linkPreviewRow}><span>Date</span><span>{r.date}</span></div>
+              <div className={styles.linkPreviewRow}><span>Miles</span><span>{r.miles} mi</span></div>
+              {r.pace && <div className={styles.linkPreviewRow}><span>Pace</span><span>{r.pace}/mi</span></div>}
+              {r.hr && <div className={styles.linkPreviewRow}><span>HR</span><span>{r.hr} bpm</span></div>}
+              {shoe && <div className={styles.linkPreviewRow}><span>Shoe</span><span>{shoe.brand} {shoe.name}</span></div>}
+            </div>
+          )
+        })()}
+        <FormActions>
+          <Btn variant="ghost" onClick={()=>setLinkModal(false)}>Cancel</Btn>
+          <Btn variant="primary" onClick={saveLinkRun} disabled={savingLink||!linkRunId}>{savingLink?'Linking…':'Link Run'}</Btn>
         </FormActions>
       </Modal>
     </div>
