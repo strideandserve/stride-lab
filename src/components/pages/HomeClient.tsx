@@ -46,9 +46,18 @@ function predictReplacement(shoe: Shoe, runs: Run[]) {
 export default function HomeClient({ shoes, runs, userName }: Props) {
   const allMonths = getAllMonths(runs)
   const [activeMonth, setActiveMonth] = useState(() => allMonths[allMonths.length-1] ?? null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef    = useRef<HTMLCanvasElement>(null)
+  const barCanvasRef = useRef<HTMLCanvasElement>(null)
 
   const totalMiles = runs.reduce((a,r)=>a+(r.miles||0),0)
+
+  // Shoes active in the past 12 months
+  const oneYearAgo = new Date()
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
+  const activeShoeIds = new Set(
+    runs.filter(r => r.date && new Date(r.date + 'T00:00:00') >= oneYearAgo).map(r => r.shoe_id)
+  )
+  const recentShoes = shoes.filter(s => activeShoeIds.has(s.id) || runs.some(r => r.shoe_id === s.id))
 
   // Best by category
   function bestShoe(cat: string) {
@@ -174,6 +183,134 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
     }
   }, [activeMonth, shoes, runs])
 
+  // ── BAR CHART useEffect
+  useEffect(() => {
+    const canvas = barCanvasRef.current
+    if (!canvas || !recentShoes.length) return
+
+    const dpr = window.devicePixelRatio || 1
+    const W   = canvas.parentElement!.clientWidth - 32
+    const H   = 280
+    canvas.width  = W * dpr; canvas.height = H * dpr
+    canvas.style.width = W + 'px'; canvas.style.height = H + 'px'
+    const ctx = canvas.getContext('2d')!
+    ctx.scale(dpr, dpr)
+    ctx.clearRect(0, 0, W, H)
+
+    const padL = 52, padR = 20, padT = 20, padB = 64
+    const cW = W - padL - padR
+    const cH = H - padT - padB
+
+    // Build data
+    const barData = recentShoes.map(shoe => {
+      const sr       = runs.filter(r => r.shoe_id === shoe.id)
+      const usedMi   = (shoe.start_miles || 0) + sr.reduce((a, r) => a + (r.miles || 0), 0)
+      const maxMi    = shoe.max_miles || 350
+      const remMi    = Math.max(0, maxMi - usedMi)
+      const pct      = Math.min(1, usedMi / maxMi)
+      const danger   = pct >= 0.85
+      const color    = danger ? '#ff4747' : CAT_COLORS[shoe.category] || '#39ff6a'
+      return { shoe, usedMi, remMi, maxMi, pct, color, danger }
+    })
+
+    const maxVal  = Math.max(...barData.map(d => d.maxMi), 1)
+    const yMax    = Math.ceil(maxVal / 50) * 50 || 100
+    const yP      = (v: number) => padT + cH - (v / yMax) * cH
+
+    // Y grid lines
+    const gridSteps = 4
+    for (let i = 0; i <= gridSteps; i++) {
+      const v  = (yMax / gridSteps) * i
+      const y2 = yP(v)
+      ctx.beginPath()
+      ctx.strokeStyle = i === 0 ? '#2e452e' : '#1a2a1a'
+      ctx.lineWidth   = 1
+      ctx.setLineDash(i === 0 ? [] : [3, 3])
+      ctx.moveTo(padL, y2); ctx.lineTo(padL + cW, y2)
+      ctx.stroke(); ctx.setLineDash([])
+      ctx.fillStyle   = '#527a52'
+      ctx.font        = '10px DM Mono,monospace'
+      ctx.textAlign   = 'right'
+      ctx.fillText(v.toFixed(0), padL - 6, y2 + 3)
+    }
+
+    const n         = barData.length
+    const barW      = Math.min(56, (cW / n) * 0.55)
+    const gap       = cW / n
+
+    barData.forEach(({ shoe, usedMi, remMi, maxMi, color, danger }, i) => {
+      const cx = padL + gap * i + gap / 2
+
+      // Remaining (dim background bar)
+      const totalH = (maxMi / yMax) * cH
+      const usedH  = (usedMi / yMax) * cH
+      const remH   = Math.max(0, totalH - usedH)
+      const barX   = cx - barW / 2
+
+      // Remaining bar (faded)
+      if (remH > 0) {
+        ctx.fillStyle = color + '22'
+        ctx.beginPath()
+        ctx.roundRect(barX, yP(maxMi), barW, remH, [4, 4, 0, 0])
+        ctx.fill()
+        // Dashed top border on remaining
+        ctx.strokeStyle = color + '44'
+        ctx.lineWidth   = 1
+        ctx.setLineDash([3, 3])
+        ctx.strokeRect(barX, yP(maxMi), barW, remH)
+        ctx.setLineDash([])
+      }
+
+      // Used bar (solid)
+      if (usedH > 0) {
+        ctx.fillStyle = color
+        ctx.beginPath()
+        ctx.roundRect(barX, yP(usedMi), barW, usedH, remH > 0 ? [0, 0, 0, 0] : [4, 4, 0, 0])
+        ctx.fill()
+        // Subtle glow on used bar
+        ctx.shadowColor = color
+        ctx.shadowBlur  = 6
+        ctx.fillStyle   = color
+        ctx.beginPath()
+        ctx.roundRect(barX, yP(usedMi), barW, usedH, remH > 0 ? [0,0,0,0] : [4,4,0,0])
+        ctx.fill()
+        ctx.shadowBlur = 0
+      }
+
+      // Miles used label above bar
+      ctx.fillStyle   = color
+      ctx.font        = 'bold 10px DM Mono,monospace'
+      ctx.textAlign   = 'center'
+      ctx.fillText(usedMi.toFixed(0) + ' mi', cx, yP(usedMi) - 6)
+
+      // Remaining label inside faded area if space
+      if (remH > 18 && remMi > 0) {
+        ctx.fillStyle = color + '88'
+        ctx.font      = '9px DM Mono,monospace'
+        ctx.fillText(remMi.toFixed(0) + ' left', cx, yP(maxMi) + 12)
+      }
+
+      // Shoe icon below bar
+      ctx.font      = '18px serif'
+      ctx.textAlign = 'center'
+      ctx.fillText('👟', cx, H - padB + 18)
+
+      // Shoe name below icon
+      const shortName = shoe.name.length > 10 ? shoe.name.slice(0, 9) + '…' : shoe.name
+      ctx.fillStyle = '#527a52'
+      ctx.font      = '9px DM Mono,monospace'
+      ctx.textAlign = 'center'
+      ctx.fillText(shortName, cx, H - padB + 32)
+
+      // Brand name
+      const shortBrand = shoe.brand.length > 8 ? shoe.brand.slice(0, 7) + '…' : shoe.brand
+      ctx.fillStyle = '#2e452e'
+      ctx.font      = '9px DM Mono,monospace'
+      ctx.fillText(shortBrand, cx, H - padB + 44)
+    })
+
+  }, [shoes, runs])
+
   return (
     <div className={styles.wrap}>
       {/* GREETING */}
@@ -243,6 +380,39 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
             </div>
           )
         })}
+      </div>
+
+      {/* SHOE LIFESPAN BAR CHART */}
+      <div className={styles.sectionHeader} style={{marginTop:32}}>
+        <div className={styles.sectionTitle}>Shoe Lifespan Overview</div>
+        <div style={{fontFamily:'DM Mono,monospace',fontSize:10,color:'var(--text-muted)',letterSpacing:'0.5px'}}>
+          Solid = miles used &nbsp;·&nbsp; Faded = remaining lifespan
+        </div>
+      </div>
+      <div className={styles.chartCard}>
+        {recentShoes.length === 0 ? (
+          <div className={styles.chartEmpty}>Add shoes to see lifespan overview</div>
+        ) : (
+          <>
+            <canvas ref={barCanvasRef} style={{display:'block',width:'100%'}}/>
+            <div className={styles.chartLegend} style={{marginTop:12}}>
+              {recentShoes.map(s => {
+                const sr     = runs.filter(r => r.shoe_id === s.id)
+                const used   = (s.start_miles||0) + sr.reduce((a,r)=>a+(r.miles||0),0)
+                const pct    = Math.min(100, used / s.max_miles * 100)
+                const danger = pct >= 85
+                const color  = danger ? 'var(--red)' : CAT_COLORS[s.category]
+                return (
+                  <div key={s.id} className={styles.legendItem}>
+                    <div className={styles.legendDot} style={{background:color}}/>
+                    <span>{s.brand} {s.name}</span>
+                    <span style={{color:'var(--text-dim)',marginLeft:4}}>{used.toFixed(0)}/{s.max_miles} mi</span>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
 
       {/* MONTHLY CHART */}
