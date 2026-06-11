@@ -6,6 +6,13 @@ export const metadata: Metadata = {
   description: 'Track your running shoes, performance, and race history.',
   manifest: '/manifest.json',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Stride Lab' },
+  icons: {
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+    icon:  [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icon-512.png',         sizes: '512x512',  type: 'image/png' },
+    ],
+  },
 }
 
 export const viewport: Viewport = {
