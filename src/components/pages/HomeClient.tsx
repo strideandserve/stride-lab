@@ -121,6 +121,7 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
 
   // ── SPENDING CALCULATIONS
   const now        = new Date()
+  const today      = new Date(); today.setHours(0,0,0,0)
   const yearStart  = new Date(now.getFullYear(), 0, 1)
   const yearEnd    = new Date(now.getFullYear(), 11, 31)
   const daysInYear = 365
