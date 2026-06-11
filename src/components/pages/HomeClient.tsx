@@ -163,8 +163,9 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
 
   // ── TRAINING PLAN WIDGET
   function getCurrentWeekNum(plan: TrainingPlan) {
+    const now2 = new Date(); now2.setHours(0,0,0,0)
     const start = new Date(plan.start_date + 'T00:00:00')
-    const diff  = Math.floor((today.getTime() - start.getTime()) / (7 * 864e5))
+    const diff  = Math.floor((now2.getTime() - start.getTime()) / (7 * 864e5))
     return Math.max(1, Math.min(plan.weeks, diff + 1))
   }
 
