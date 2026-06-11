@@ -1,12 +1,15 @@
-'use client'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import type { Shoe, Run } from '@/lib/types'
-import { computeCompositeScore, catLabel, CAT_COLORS, paceToFinishTime, paceToSeconds, secondsToPace } from '@/lib/utils'
+import { createClient } from '@/lib/supabase'
+import type { Shoe, Run, UpcomingRace } from '@/lib/types'
+import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel } from '@/lib/utils'
 import BrandLogo from '@/components/BrandLogo'
+import Modal from '@/components/Modal'
+import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
+import { toast } from '@/components/Toast'
 import styles from './HomeClient.module.css'
 
-interface Props { shoes: Shoe[]; runs: Run[]; userName: string }
+interface Props { shoes: Shoe[]; runs: Run[]; userName: string; upcomingRaces: UpcomingRace[] }
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 const SHOE_COLORS = ['#39ff6a','#ff6b35','#a8ff3e','#47c8ff','#ff47a0','#ffcc00','#b347ff','#ff4747']
@@ -43,7 +46,21 @@ function predictReplacement(shoe: Shoe, runs: Run[]) {
   return { overdue:false, shoe, totalMi, maxMi, miLeft:miLeft.toFixed(1), daily:daily.toFixed(2), daysLeft, dateStr:dt.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}) }
 }
 
-export default function HomeClient({ shoes, runs, userName }: Props) {
+export default function HomeClient({ shoes, runs, userName, upcomingRaces: initRaces }: Props) {
+  const router     = useRouter()
+  const supabase   = createClient()
+  const [, startTransition] = useTransition()
+  const refresh    = () => startTransition(() => router.refresh())
+
+  // Race modal state
+  const [raceModal, setRaceModal]     = useState(false)
+  const [editingRace, setEditingRace] = useState<UpcomingRace | null>(null)
+  const [raceName, setRaceName]       = useState('')
+  const [raceDate, setRaceDate]       = useState('')
+  const [raceType, setRaceType]       = useState('marathon')
+  const [raceLocation, setRaceLocation] = useState('')
+  const [raceGoal, setRaceGoal]       = useState('')
+  const [savingRace, setSavingRace]   = useState(false)
   const allMonths = getAllMonths(runs)
   const [activeMonth, setActiveMonth] = useState(() => allMonths[allMonths.length-1] ?? null)
   const canvasRef    = useRef<HTMLCanvasElement>(null)
@@ -58,6 +75,83 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
     runs.filter(r => r.date && new Date(r.date + 'T00:00:00') >= oneYearAgo).map(r => r.shoe_id)
   )
   const recentShoes = shoes.filter(s => activeShoeIds.has(s.id) || runs.some(r => r.shoe_id === s.id))
+
+  // ── RACE CRUD
+  function openAddRace() {
+    setEditingRace(null); setRaceName(''); setRaceDate(''); setRaceType('marathon')
+    setRaceLocation(''); setRaceGoal(''); setRaceModal(true)
+  }
+  function openEditRace(r: UpcomingRace) {
+    setEditingRace(r); setRaceName(r.name); setRaceDate(r.date); setRaceType(r.type||'marathon')
+    setRaceLocation(r.location||''); setRaceGoal(r.goal_time||''); setRaceModal(true)
+  }
+  async function saveRace() {
+    if (!raceName.trim()) return toast('Enter a race name','error')
+    if (!raceDate)        return toast('Pick a date','error')
+    setSavingRace(true)
+    const { data:{ session } } = await supabase.auth.getSession()
+    const data = { name:raceName.trim(), date:raceDate, type:raceType, location:raceLocation.trim()||null, goal_time:raceGoal.trim()||null }
+    if (editingRace) {
+      await supabase.from('upcoming_races').update(data).eq('id', editingRace.id)
+      toast('Race updated')
+    } else {
+      await supabase.from('upcoming_races').insert({ ...data, user_id:session!.user.id })
+      toast(`${raceName} added`)
+    }
+    setSavingRace(false); setRaceModal(false); refresh()
+  }
+  async function deleteRace(id: string) {
+    await supabase.from('upcoming_races').delete().eq('id', id)
+    toast('Race removed'); refresh()
+  }
+
+  function daysUntil(dateStr: string) {
+    const today = new Date(); today.setHours(0,0,0,0)
+    const d     = new Date(dateStr + 'T00:00:00')
+    return Math.ceil((d.getTime() - today.getTime()) / 86400000)
+  }
+
+  // ── SPENDING CALCULATIONS
+  const now        = new Date()
+  const yearStart  = new Date(now.getFullYear(), 0, 1)
+  const yearEnd    = new Date(now.getFullYear(), 11, 31)
+  const daysInYear = 365
+  const dayOfYear  = Math.floor((now.getTime() - yearStart.getTime()) / 86400000) + 1
+  const daysLeft   = daysInYear - dayOfYear
+
+  // Shoes purchased this year (use added_date as proxy)
+  const shoesThisYear = shoes.filter(s => s.added_date && new Date(s.added_date).getFullYear() === now.getFullYear())
+  const totalSpentThisYear = shoesThisYear.reduce((a, s) => a + (s.price || 0), 0)
+  const spentByCategory = {
+    daily: shoesThisYear.filter(s=>s.category==='daily').reduce((a,s)=>a+(s.price||0),0),
+    speed: shoesThisYear.filter(s=>s.category==='speed').reduce((a,s)=>a+(s.price||0),0),
+    race:  shoesThisYear.filter(s=>s.category==='race').reduce((a,s)=>a+(s.price||0),0),
+  }
+
+  // Average daily miles per category this year
+  const runsThisYear = runs.filter(r => r.date && new Date(r.date).getFullYear() === now.getFullYear())
+  function avgDailyMilesByCat(cat: string) {
+    const catShoeIds = shoes.filter(s=>s.category===cat).map(s=>s.id)
+    const mi = runsThisYear.filter(r=>catShoeIds.includes(r.shoe_id)).reduce((a,r)=>a+(r.miles||0),0)
+    return mi / Math.max(dayOfYear, 1)
+  }
+
+  // Projection: how many more shoes needed × avg price
+  function projectSpend(cat: string) {
+    const catShoes     = shoes.filter(s=>s.category===cat)
+    if (!catShoes.length) return 0
+    const avgMax       = catShoes.reduce((a,s)=>a+s.max_miles,0) / catShoes.length
+    const avgPrice     = catShoes.filter(s=>s.price).reduce((a,s)=>a+(s.price||0),0) / (catShoes.filter(s=>s.price).length||1)
+    if (!avgPrice) return 0
+    const milesLeft    = avgDailyMilesByCat(cat) * daysLeft
+    const shoesNeeded  = milesLeft / avgMax
+    return Math.round(shoesNeeded * avgPrice)
+  }
+
+  const projDaily = projectSpend('daily')
+  const projSpeed = projectSpend('speed')
+  const projRace  = projectSpend('race')
+  const totalProj = projDaily + projSpeed + projRace
 
   // Best by category
   function bestShoe(cat: string) {
@@ -353,6 +447,96 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
         </div>
       )}
 
+      {/* UPCOMING RACE COUNTDOWNS */}
+      {(initRaces.length > 0 || true) && (
+        <div className={styles.raceCountdownSection}>
+          <div className={styles.sectionHeader} style={{marginBottom:16}}>
+            <div className={styles.sectionTitle}>Upcoming Races</div>
+            <Btn variant="accent" onClick={openAddRace} style={{fontSize:11,padding:'6px 14px'}}>+ Add Race</Btn>
+          </div>
+          {initRaces.length === 0 ? (
+            <div className={styles.raceCountdownEmpty}>No upcoming races — <span onClick={openAddRace} style={{color:'var(--accent)',cursor:'pointer'}}>add one</span></div>
+          ) : (
+            <div className={styles.raceCountdownGrid}>
+              {initRaces.map(r => {
+                const days = daysUntil(r.date)
+                const urgent = days <= 14
+                const soon   = days <= 42
+                return (
+                  <div key={r.id} className={styles.raceCountdownCard} style={{borderColor: urgent ? 'rgba(255,71,71,0.4)' : soon ? 'rgba(255,170,0,0.3)' : 'var(--border)'}}>
+                    <div className={styles.raceCountdownDays} style={{color: urgent ? 'var(--red)' : soon ? 'var(--warn)' : 'var(--accent)'}}>
+                      {days}
+                    </div>
+                    <div className={styles.raceCountdownLabel}>DAYS TO GO</div>
+                    <div className={styles.raceCountdownName}>{r.name}</div>
+                    <div className={styles.raceCountdownMeta}>
+                      {new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+                      {r.location && ` · ${r.location}`}
+                      {r.goal_time && <span style={{color:'var(--accent)',marginLeft:6}}>Goal: {r.goal_time}</span>}
+                    </div>
+                    <div className={styles.raceCountdownActions}>
+                      <button className={styles.raceEditBtn} onClick={()=>openEditRace(r)}>EDIT</button>
+                      <button className={styles.raceDelBtn} onClick={()=>deleteRace(r.id)}>✕</button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* SPENDING SUMMARY */}
+      <div className={styles.sectionHeader} style={{marginTop:32}}>
+        <div className={styles.sectionTitle}>Shoe Spending</div>
+        <div style={{fontFamily:'DM Mono,monospace',fontSize:10,color:'var(--text-muted)',letterSpacing:'0.5px'}}>{now.getFullYear()} · {daysLeft} days left in year</div>
+      </div>
+      <div className={styles.spendingCard}>
+        <div className={styles.spendingRow}>
+          {/* Spent this year */}
+          <div className={styles.spendingBlock}>
+            <div className={styles.spendingBlockLabel}>Spent This Year</div>
+            <div className={styles.spendingBig}>${totalSpentThisYear.toLocaleString()}</div>
+            <div className={styles.spendingBreakdown}>
+              {(['daily','speed','race'] as const).map(cat => spentByCategory[cat] > 0 && (
+                <div key={cat} className={styles.spendingBreakdownItem}>
+                  <span style={{color:CAT_COLORS[cat]}}>{catLabel(cat)}</span>
+                  <span>${spentByCategory[cat].toLocaleString()}</span>
+                </div>
+              ))}
+              {totalSpentThisYear === 0 && <div style={{color:'var(--text-dim)',fontSize:11,fontStyle:'italic'}}>Add prices to your shoes to track spending</div>}
+            </div>
+          </div>
+
+          <div className={styles.spendingDivider}/>
+
+          {/* Projected remainder */}
+          <div className={styles.spendingBlock}>
+            <div className={styles.spendingBlockLabel}>Projected Rest of Year</div>
+            <div className={styles.spendingBig} style={{color:'var(--warn)'}}>${totalProj.toLocaleString()}</div>
+            <div className={styles.spendingBreakdown}>
+              {projDaily > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.daily}}>Daily</span><span>${projDaily.toLocaleString()}</span></div>}
+              {projSpeed > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.speed}}>Speed</span><span>${projSpeed.toLocaleString()}</span></div>}
+              {projRace  > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.race}}>Race</span><span>${projRace.toLocaleString()}</span></div>}
+              {totalProj === 0 && <div style={{color:'var(--text-dim)',fontSize:11,fontStyle:'italic'}}>Log more runs to generate projection</div>}
+            </div>
+          </div>
+
+          <div className={styles.spendingDivider}/>
+
+          {/* Full year estimate */}
+          <div className={styles.spendingBlock}>
+            <div className={styles.spendingBlockLabel}>Full Year Estimate</div>
+            <div className={styles.spendingBig} style={{color:'var(--race)'}}>
+              ${(totalSpentThisYear + totalProj).toLocaleString()}
+            </div>
+            <div style={{fontFamily:'DM Mono,monospace',fontSize:10,color:'var(--text-muted)',marginTop:8}}>
+              {shoesThisYear.length} shoe{shoesThisYear.length!==1?'s':''} purchased · {daysLeft} days remaining
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* BEST BY CATEGORY */}
       <div className={styles.sectionHeader}><div className={styles.sectionTitle}>Best Shoes by Category</div></div>
       <div className={styles.bestGrid}>
@@ -505,6 +689,29 @@ export default function HomeClient({ shoes, runs, userName }: Props) {
           )
         })}
       </div>
+      {/* RACE MODAL */}
+      <Modal open={raceModal} onClose={()=>setRaceModal(false)} title={editingRace?'Edit Race':'Add Upcoming Race'}>
+        <FormGroup><FormLabel>Race Name</FormLabel><FormInput placeholder="e.g. Chicago Marathon 2026" value={raceName} onChange={e=>setRaceName(e.target.value)}/></FormGroup>
+        <FormRow>
+          <FormGroup><FormLabel>Race Date</FormLabel><FormInput type="date" value={raceDate} onChange={e=>setRaceDate(e.target.value)}/></FormGroup>
+          <FormGroup>
+            <FormLabel>Race Type</FormLabel>
+            <FormSelect value={raceType} onChange={e=>setRaceType(e.target.value)}>
+              <option value="marathon">Marathon</option>
+              <option value="half">Half Marathon</option>
+              <option value="ten_k">10K</option>
+              <option value="five_k">5K</option>
+              <option value="other">Other</option>
+            </FormSelect>
+          </FormGroup>
+        </FormRow>
+        <FormGroup><FormLabel>Location (optional)</FormLabel><FormInput placeholder="e.g. Chicago, IL" value={raceLocation} onChange={e=>setRaceLocation(e.target.value)}/></FormGroup>
+        <FormGroup><FormLabel>Goal Time (optional)</FormLabel><FormInput placeholder="e.g. 2:50:00" value={raceGoal} onChange={e=>setRaceGoal(e.target.value)}/></FormGroup>
+        <FormActions>
+          <Btn variant="ghost" onClick={()=>setRaceModal(false)}>Cancel</Btn>
+          <Btn variant="primary" onClick={saveRace} disabled={savingRace}>{savingRace?'Saving…':editingRace?'Save Changes':'Add Race'}</Btn>
+        </FormActions>
+      </Modal>
     </div>
   )
 }

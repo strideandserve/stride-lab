@@ -17,7 +17,19 @@ export interface Shoe {
   start_miles: number
   size: number | null
   wide: string
+  price: number | null
   added_date: string
+  created_at: string
+}
+
+export interface UpcomingRace {
+  id: string
+  user_id: string
+  name: string
+  date: string
+  type: string
+  location: string | null
+  goal_time: string | null
   created_at: string
 }
 

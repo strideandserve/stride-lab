@@ -30,6 +30,7 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
   const [shoeStart, setShoeStart]   = useState('0')
   const [shoeSize, setShoeSize]     = useState('')
   const [shoeWide, setShoeWide]     = useState('standard')
+  const [shoePrice, setShoePrice]   = useState('')
   const [savingShoe, setSavingShoe] = useState(false)
 
   // ── Run modal state
@@ -59,13 +60,14 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
   // ── SHOE HELPERS
   function openAddShoe() {
     setEditingShoe(null); setShoeName(''); setShoeBrand(''); setShoeCat('daily')
-    setShoeMax('350'); setShoeStart('0'); setShoeSize(''); setShoeWide('standard')
+    setShoeMax('350'); setShoeStart('0'); setShoeSize(''); setShoeWide('standard'); setShoePrice('')
     setShoeModal(true)
   }
   function openEditShoe(shoe: Shoe) {
     setEditingShoe(shoe); setShoeName(shoe.name); setShoeBrand(shoe.brand)
     setShoeCat(shoe.category); setShoeMax(String(shoe.max_miles)); setShoeStart(String(shoe.start_miles||0))
     setShoeSize(shoe.size ? String(shoe.size) : ''); setShoeWide(shoe.wide || 'standard')
+    setShoePrice(shoe.price ? String(shoe.price) : '')
     setShoeModal(true)
   }
   async function saveShoe() {
@@ -73,7 +75,8 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
     setSavingShoe(true)
     const data = { name:shoeName.trim(), brand:shoeBrand.trim()||'Unknown', category:shoeCat,
       max_miles:parseFloat(shoeMax)||350, start_miles:parseFloat(shoeStart)||0,
-      size:shoeSize?parseFloat(shoeSize):null, wide:shoeWide }
+      size:shoeSize?parseFloat(shoeSize):null, wide:shoeWide,
+      price:shoePrice?parseFloat(shoePrice):null }
     if (editingShoe) {
       await supabase.from('shoes').update(data).eq('id',editingShoe.id)
       toast(`${shoeName} updated`)
@@ -186,6 +189,7 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
                       <div className={styles.cardBrand}>
                         {shoe.brand} · {catLabel(shoe.category)}
                         {shoe.size && <span className={styles.sizeBadge}>US {shoe.size}{shoe.wide==='wide'?' · Wide':''}</span>}
+                        {shoe.price && <span className={styles.sizeBadge}>${shoe.price}</span>}
                       </div>
                     </div>
                     <BrandLogo brand={shoe.brand} size={34}/>
@@ -271,6 +275,7 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
           <FormGroup><FormLabel>Shoe Size (US)</FormLabel><FormInput type="number" step="0.5" placeholder="10.5" value={shoeSize} onChange={e=>setShoeSize(e.target.value)}/></FormGroup>
           <FormGroup><FormLabel>Fit</FormLabel><FormSelect value={shoeWide} onChange={e=>setShoeWide(e.target.value)}><option value="standard">Standard</option><option value="wide">Wide</option></FormSelect></FormGroup>
         </FormRow>
+        <FormGroup><FormLabel>Price Paid ($)</FormLabel><FormInput type="number" step="0.01" placeholder="160.00" value={shoePrice} onChange={e=>setShoePrice(e.target.value)}/></FormGroup>
         <FormActions>
           <Btn variant="ghost" onClick={()=>setShoeModal(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={saveShoe} disabled={savingShoe}>{savingShoe?'Saving…':editingShoe?'Save Changes':'Add Shoe'}</Btn>

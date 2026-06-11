@@ -97,6 +97,41 @@
 
 .empty { text-align:center;padding:60px 20px;color:var(--text-dim); }
 
+/* RACE COUNTDOWNS */
+.raceCountdownSection { margin-bottom: 8px; }
+.raceCountdownEmpty { font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);padding:20px 0; }
+.raceCountdownGrid { display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:8px; }
+.raceCountdownCard {
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:20px 18px;position:relative;transition:border-color 0.2s;
+}
+.raceCountdownCard:hover { border-color:#2a3e2a; }
+.raceCountdownDays {
+  font-family:'Bebas Neue',sans-serif;font-size:56px;line-height:1;
+  color:var(--accent);text-shadow:0 0 20px rgba(57,255,106,0.3);
+}
+.raceCountdownLabel { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px; }
+.raceCountdownName { font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:4px; }
+.raceCountdownMeta { font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:12px;line-height:1.5; }
+.raceCountdownActions { display:flex;gap:8px; }
+.raceEditBtn { font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);background:transparent;border:1px solid rgba(57,255,106,0.25);border-radius:4px;padding:3px 8px;cursor:pointer; }
+.raceDelBtn  { font-family:'DM Mono',monospace;font-size:12px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;padding:0 4px; }
+
+/* SPENDING */
+.spendingCard {
+  background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  padding:24px 28px;margin-bottom:8px;
+}
+.spendingRow { display:flex;gap:0;flex-wrap:wrap; }
+.spendingBlock { flex:1;min-width:180px;padding:0 20px; }
+.spendingBlock:first-child { padding-left:0; }
+.spendingBlock:last-child { padding-right:0; }
+.spendingBlockLabel { font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px; }
+.spendingBig { font-family:'Bebas Neue',sans-serif;font-size:42px;line-height:1;color:var(--accent);margin-bottom:10px; }
+.spendingBreakdown { display:flex;flex-direction:column;gap:4px; }
+.spendingBreakdownItem { display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-muted); }
+.spendingDivider { width:1px;background:var(--border);margin:0 4px;align-self:stretch; }
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .bestGrid { grid-template-columns:1fr;gap:10px; }
