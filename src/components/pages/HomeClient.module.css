@@ -1,6 +1,21 @@
 .wrap { max-width: 1400px; }
 
-.header { margin-bottom: 32px; }
+.header { display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:32px;flex-wrap:wrap; }
+.headerLeft { flex:1;min-width:0; }
+
+/* MARATHON WIDGET */
+.marathonWidget { flex-shrink:0;width:280px;background:var(--surface);border:1px solid rgba(57,255,106,0.2);border-radius:12px;padding:20px 22px; }
+.marathonWidgetTop { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px; }
+.marathonWidgetName { font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:14px;line-height:1.1; }
+.marathonDaysRow { display:flex;align-items:baseline;gap:8px;margin-bottom:16px; }
+.marathonDaysNum { font-family:'Bebas Neue',sans-serif;font-size:54px;line-height:1;color:var(--accent);text-shadow:0 0 24px rgba(57,255,106,0.3); }
+.marathonDaysUnit { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;line-height:1.5; }
+.marathonTimeline { display:flex;align-items:center;gap:8px; }
+.marathonTimelineLabel { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;white-space:nowrap;flex-shrink:0; }
+.marathonTimelineTrack { flex:1;height:1px;background:var(--border);position:relative; }
+.marathonTimelineDot { position:absolute;right:-3px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(57,255,106,0.7); }
+.marathonTimelineDate { font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--accent);flex-shrink:0; }
+.marathonGoal { font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:8px;letter-spacing:0.5px; }
 
 .greeting {
   font-family: 'Bebas Neue', sans-serif;
@@ -163,4 +178,5 @@
   .predDate { font-size:18px;width:100%; }
   .monthToggles { gap:4px; }
   .monthBtn { font-size:9px;padding:4px 7px; }
+  .marathonWidget { width:100%; }
 }
