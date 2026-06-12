@@ -465,6 +465,9 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
           <div className={styles.marathonWidget}>
             <div className={styles.marathonWidgetTop}>Next Marathon</div>
             <div className={styles.marathonWidgetName}>{nextMarathon.name}</div>
+            {nextMarathon.name.toLowerCase().includes('chicago') && (
+              <img src="https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Marathon_logo.svg" alt="Chicago Marathon" className={styles.marathonRaceLogo} />
+            )}
             <div className={styles.marathonDaysRow}>
               <span className={styles.marathonDaysNum}>{marathonDays}</span>
               <div className={styles.marathonDaysUnit}>DAYS<br/>TO GO</div>

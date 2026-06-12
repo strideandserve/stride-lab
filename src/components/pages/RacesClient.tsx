@@ -107,6 +107,9 @@ export default function RacesClient({ shoes, races }: Props) {
                 <div key={r.id} className={styles.tableRow}>
                   <div>
                     <div className={styles.raceName}>{r.race_name||'Unnamed Race'}{isPR&&<span className={styles.prTag}>★ PR</span>}</div>
+                    {r.race_name?.toLowerCase().includes('chicago') && (
+                      <img src="https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Marathon_logo.svg" alt="Chicago Marathon" className={styles.raceNameLogo} />
+                    )}
                     <div className={styles.raceShoeName}>{shoe?`${shoe.brand} ${shoe.name}`:'—'}</div>
                   </div>
                   <div><span className={`${styles.typeBadge} ${styles[r.race_type||'other']}`}>{raceTypeLabel(r.race_type)}</span></div>

@@ -13,6 +13,7 @@
 .raceName { font-weight:600;font-size:13px; }
 .prTag { color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;margin-left:6px; }
 .raceShoeName { font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace; }
+.raceNameLogo { display:block;width:90px;height:auto;margin:4px 0 2px;filter:brightness(0) invert(1);opacity:0.75; }
 .raceStat { font-family:'DM Mono',monospace;font-size:12px; }
 .typeBadge { font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:100px;letter-spacing:1px;text-transform:uppercase; }
 .marathon { background:rgba(57,255,106,0.1);color:var(--daily);border:1px solid rgba(57,255,106,0.2); }
