@@ -214,6 +214,7 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
   const marathonRaceDate = nextMarathon
     ? new Date(nextMarathon.date + 'T00:00:00').toLocaleDateString('en-US', {month:'short', day:'numeric'}).toUpperCase()
     : ''
+  const todayDateStr = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric'}).toUpperCase()
 
   // Draw chart
   useEffect(() => {
@@ -469,8 +470,9 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
               <div className={styles.marathonDaysUnit}>DAYS<br/>TO GO</div>
             </div>
             <div className={styles.marathonTimeline}>
-              <span className={styles.marathonTimelineLabel}>TODAY</span>
+              <span className={styles.marathonTimelineLabel}>{todayDateStr}</span>
               <div className={styles.marathonTimelineTrack}>
+                <div className={styles.marathonTimelineStartDot}/>
                 <div className={styles.marathonTimelineDot}/>
               </div>
               <span className={styles.marathonTimelineDate}>{marathonRaceDate}</span>
