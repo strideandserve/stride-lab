@@ -198,6 +198,12 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
             <div className={styles.stat}><div className={styles.statVal}>{totalMi.toFixed(1)}</div><div className={styles.statLabel}>Miles</div></div>
             <div className={styles.stat}><div className={styles.statVal}>{runs.length}</div><div className={styles.statLabel}>Runs</div></div>
             <div className={styles.stat}><div className={styles.statVal}>{score??'—'}</div><div className={styles.statLabel}>Score</div></div>
+            {shoe.price && totalMi > 0 && (
+              <div className={styles.stat}>
+                <div className={styles.statVal} style={{fontSize:18}}>${(shoe.price/totalMi).toFixed(2)}</div>
+                <div className={styles.statLabel}>Cost/Mile</div>
+              </div>
+            )}
           </div>
         </div>
         <div className={styles.cardBody}>

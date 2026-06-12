@@ -28,7 +28,9 @@ export default function RankingsClient({ shoes, runs }: Props) {
             const avgPace = pRuns.length ? pRuns.reduce((a,r)=>a+(paceToSeconds(r.pace)||0),0)/pRuns.length : null
             const avgHr   = hRuns.length ? Math.round(hRuns.reduce((a,r)=>a+(r.hr||0),0)/hRuns.length) : null
             const avgComf = cRuns.length ? (cRuns.reduce((a,r)=>a+(r.comfort||0),0)/cRuns.length).toFixed(1) : null
-            return { shoe, score, count:sr.length, avgPace, avgHr, avgComf }
+            const totalMi = (shoe.start_miles||0)+sr.reduce((a,r)=>a+(r.miles||0),0)
+            const costPerMi = shoe.price && totalMi > 0 ? (shoe.price/totalMi).toFixed(2) : null
+            return { shoe, score, count:sr.length, avgPace, avgHr, avgComf, costPerMi }
           }).filter(x=>x.score!==null).sort((a,b)=>(b.score!-a.score!))
 
           return (
@@ -44,7 +46,7 @@ export default function RankingsClient({ shoes, runs }: Props) {
                   <div className={styles.rank} style={{color:i<3?RANK_LABELS[RANK_COLORS[i]]:'var(--text-dim)'}}>{i+1}</div>
                   <div className={styles.info}>
                     <div className={styles.name}>{item.shoe.brand} {item.shoe.name}</div>
-                    <div className={styles.meta}>{item.count} runs · {secondsToPace(item.avgPace)}/mi · {item.avgHr||'—'} bpm · {item.avgComf||'—'}/10</div>
+                    <div className={styles.meta}>{item.count} runs · {secondsToPace(item.avgPace)}/mi · {item.avgHr||'—'} bpm · {item.avgComf||'—'}/10{item.costPerMi ? ` · $${item.costPerMi}/mi` : ''}</div>
                   </div>
                   <div className={styles.score} style={{color:CAT_COLORS[cat]}}>{item.score}</div>
                 </div>
