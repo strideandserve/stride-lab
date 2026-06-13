@@ -89,7 +89,15 @@ export const RUN_TYPE_COLORS: Record<string,string> = {
   speed_intervals:   '#ff47a0',
 }
 
-export const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+export const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+
+// Returns the Monday (start of week) for a given YYYY-MM-DD date string
+export function getMonday(dateStr: string): Date {
+  const d = new Date(dateStr + 'T00:00:00')
+  const day = d.getDay() // 0=Sun..6=Sat
+  const diffToMonday = day === 0 ? -6 : 1 - day
+  return new Date(d.getTime() + diffToMonday * 864e5)
+}
 
 export const CAT_COLORS: Record<string, string> = {
   daily: '#39ff6a',
@@ -122,8 +130,8 @@ export function getBrandLogoUrl(brand: string): string | null {
 // ── RACE LOGOS
 const RACE_LOGOS: { keywords: string[]; url: string }[] = [
   { keywords: ['chicago'],                    url: 'https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Marathon_logo.svg' },
-  { keywords: ['new york', 'nyc', 'tcs new'], url: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2d/TCS_New_York_City_Marathon_Logo.svg/250px-TCS_New_York_City_Marathon_Logo.svg.png' },
-  { keywords: ['milwaukee'],                  url: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/Lakefront_Marathon_logo.png/200px-Lakefront_Marathon_logo.png' },
+  { keywords: ['new york', 'nyc', 'tcs new'], url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgNDAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjMDAzMDg3Ii8+CiAgPHRleHQgeD0iODAiIHk9IjE0IiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssc2Fucy1zZXJpZiIgZm9udC1zaXplPSI4IiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjZmY2OTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMSI+TkVXIFlPUksgQ0lUWTwvdGV4dD4KICA8dGV4dCB4PSI4MCIgeT0iMjciIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayxzYW5zLXNlcmlmIiBmb250LXNpemU9IjEwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgbGV0dGVyLXNwYWNpbmc9IjAuNSI+TUFSQVRIT048L3RleHQ+CiAgPHRleHQgeD0iODAiIHk9IjM3IiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI3IiBmaWxsPSIjZmY2OTAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMiI+VENTPC90ZXh0Pgo8L3N2Zz4=' },
+  { keywords: ['milwaukee'],                  url: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNjAgNDAiPgogIDxyZWN0IHdpZHRoPSIxNjAiIGhlaWdodD0iNDAiIHJ4PSI2IiBmaWxsPSIjMGEyNzQ0Ii8+CiAgPHRleHQgeD0iODAiIHk9IjE0IiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssc2Fucy1zZXJpZiIgZm9udC1zaXplPSI5IiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSIjNGRiOGZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBsZXR0ZXItc3BhY2luZz0iMSI+TUlMV0FVS0VFPC90ZXh0PgogIDx0ZXh0IHg9IjgwIiB5PSIyNyIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOSIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIwLjUiPkxBS0VGUk9OVDwvdGV4dD4KICA8dGV4dCB4PSI4MCIgeT0iMzciIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjciIGZpbGw9IiM0ZGI4ZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSIxIj5NQVJBVEhPTjwvdGV4dD4KPC9zdmc+' },
   { keywords: ['boston'],                     url: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Boston_Marathon_logo_%28updated_2024%29.png/250px-Boston_Marathon_logo_%28updated_2024%29.png' },
   { keywords: ['london'],                     url: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/26/TCS_London_Marathon_logo.svg/250px-TCS_London_Marathon_logo.svg.png' },
   { keywords: ['berlin'],                     url: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/66/BMW_Berlin_Marathon_logo.svg/250px-BMW_Berlin_Marathon_logo.svg.png' },
