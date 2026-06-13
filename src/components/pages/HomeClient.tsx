@@ -190,6 +190,11 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
     : null
   const nextShoe = nextWorkout?.shoe_id ? shoes.find(s => s.id === nextWorkout.shoe_id) : null
 
+  // Next upcoming race (soonest future date)
+  const nextRace = [...initRaces]
+    .filter(r => r.date >= todayStr)
+    .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null
+
   // Best by category
   function bestShoe(cat: string) {
     const scored = activeShoes.filter(s=>s.category===cat).map(s=>({
@@ -446,10 +451,31 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
     <div className={styles.wrap}>
       {/* GREETING */}
       <div className={styles.header}>
-        <div className={styles.greeting}>HEY,<br/><span>{userName.toUpperCase()}</span>.</div>
-        <div className={styles.sub}>
-          {runs.length === 0 ? "NO RUNS LOGGED YET — LET'S GO." : `${runs.length} RUN${runs.length!==1?'S':''} LOGGED · ${totalMiles.toFixed(1)} TOTAL MILES`}
+        <div className={styles.headerLeft}>
+          <div className={styles.greeting}>HEY,<br/><span>{userName.toUpperCase()}</span>.</div>
+          <div className={styles.sub}>
+            {runs.length === 0 ? "NO RUNS LOGGED YET — LET'S GO." : `${runs.length} RUN${runs.length!==1?'S':''} LOGGED · ${totalMiles.toFixed(1)} TOTAL MILES`}
+          </div>
         </div>
+        {nextRace ? (
+          <div className={styles.nextRaceCard} onClick={()=>openEditRace(nextRace)}>
+            <div className={styles.nextRaceLabel}>NEXT RACE</div>
+            <div className={styles.nextRaceDays}>{daysUntil(nextRace.date)}</div>
+            <div className={styles.nextRaceDaysLabel}>DAYS TO GO</div>
+            <div className={styles.nextRaceName}>
+              {getRaceLogoUrl(nextRace.name) && (
+                <img src={getRaceLogoUrl(nextRace.name)!} alt={nextRace.name} className={styles.nextRaceLogo} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
+              )}
+              {nextRace.name}
+            </div>
+            <div className={styles.nextRaceDate}>
+              {new Date(nextRace.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+              {nextRace.goal_time && <span style={{color:'var(--accent)'}}> · Goal {nextRace.goal_time}</span>}
+            </div>
+          </div>
+        ) : (
+          <button className={styles.nextRaceAddBtn} onClick={openAddRace}>+ Add Race</button>
+        )}
       </div>
 
       {/* MOST RECENT SHOE */}
@@ -523,102 +549,7 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
         </div>
       )}
 
-      {/* UPCOMING RACE COUNTDOWNS */}
-      {(initRaces.length > 0 || true) && (
-        <div className={styles.raceCountdownSection}>
-          <div className={styles.sectionHeader} style={{marginBottom:16}}>
-            <div className={styles.sectionTitle}>Upcoming Races</div>
-            <Btn variant="accent" onClick={openAddRace} style={{fontSize:11,padding:'6px 14px'}}>+ Add Race</Btn>
-          </div>
-          {initRaces.length === 0 ? (
-            <div className={styles.raceCountdownEmpty}>No upcoming races — <span onClick={openAddRace} style={{color:'var(--accent)',cursor:'pointer'}}>add one</span></div>
-          ) : (
-            <div className={styles.raceCountdownGrid}>
-              {initRaces.map(r => {
-                const days = daysUntil(r.date)
-                const urgent = days <= 14
-                const soon   = days <= 42
-                return (
-                  <div key={r.id} className={styles.raceCountdownCard} style={{borderColor: urgent ? 'rgba(255,71,71,0.4)' : soon ? 'rgba(255,170,0,0.3)' : 'var(--border)'}}>
-                    <div className={styles.raceCountdownDays} style={{color: urgent ? 'var(--red)' : soon ? 'var(--warn)' : 'var(--accent)'}}>
-                      {days}
-                    </div>
-                    <div className={styles.raceCountdownLabel}>DAYS TO GO</div>
-                    <div className={styles.raceCountdownName}>
-                      {getRaceLogoUrl(r.name) && (
-                        <img src={getRaceLogoUrl(r.name)!} alt={r.name} className={styles.raceCountdownLogo} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
-                      )}
-                      {r.name}
-                    </div>
-                    <div className={styles.raceCountdownMeta}>
-                      {new Date(r.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-                      {r.location && ` · ${r.location}`}
-                      {r.goal_time && <span style={{color:'var(--accent)',marginLeft:6}}>Goal: {r.goal_time}</span>}
-                    </div>
-                    <div className={styles.raceCountdownActions}>
-                      <button className={styles.raceEditBtn} onClick={()=>openEditRace(r)}>EDIT</button>
-                      <button className={styles.raceDelBtn} onClick={()=>deleteRace(r.id)}>✕</button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* SPENDING SUMMARY */}
-      <div className={styles.sectionHeader} style={{marginTop:32}}>
-        <div className={styles.sectionTitle}>Shoe Spending</div>
-        <div style={{fontFamily:'DM Mono,monospace',fontSize:10,color:'var(--text-muted)',letterSpacing:'0.5px'}}>{now.getFullYear()} · {daysLeft} days left in year</div>
-      </div>
-      <div className={styles.spendingCard}>
-        <div className={styles.spendingRow}>
-          {/* Spent this year */}
-          <div className={styles.spendingBlock}>
-            <div className={styles.spendingBlockLabel}>Spent This Year</div>
-            <div className={styles.spendingBig}>${totalSpentThisYear.toLocaleString()}</div>
-            <div className={styles.spendingBreakdown}>
-              {(['daily','speed','race'] as const).map(cat => spentByCategory[cat] > 0 && (
-                <div key={cat} className={styles.spendingBreakdownItem}>
-                  <span style={{color:CAT_COLORS[cat]}}>{catLabel(cat)}</span>
-                  <span>${spentByCategory[cat].toLocaleString()}</span>
-                </div>
-              ))}
-              {totalSpentThisYear === 0 && <div style={{color:'var(--text-dim)',fontSize:11,fontStyle:'italic'}}>Add prices to your shoes to track spending</div>}
-            </div>
-          </div>
-
-          <div className={styles.spendingDivider}/>
-
-          {/* Projected remainder */}
-          <div className={styles.spendingBlock}>
-            <div className={styles.spendingBlockLabel}>Projected Rest of Year</div>
-            <div className={styles.spendingBig} style={{color:'var(--warn)'}}>${totalProj.toLocaleString()}</div>
-            <div className={styles.spendingBreakdown}>
-              {projDaily > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.daily}}>Daily</span><span>${projDaily.toLocaleString()}</span></div>}
-              {projSpeed > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.speed}}>Speed</span><span>${projSpeed.toLocaleString()}</span></div>}
-              {projRace  > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.race}}>Race</span><span>${projRace.toLocaleString()}</span></div>}
-              {totalProj === 0 && <div style={{color:'var(--text-dim)',fontSize:11,fontStyle:'italic'}}>Log more runs to generate projection</div>}
-            </div>
-          </div>
-
-          <div className={styles.spendingDivider}/>
-
-          {/* Full year estimate */}
-          <div className={styles.spendingBlock}>
-            <div className={styles.spendingBlockLabel}>Full Year Estimate</div>
-            <div className={styles.spendingBig} style={{color:'var(--race)'}}>
-              ${(totalSpentThisYear + totalProj).toLocaleString()}
-            </div>
-            <div style={{fontFamily:'DM Mono,monospace',fontSize:10,color:'var(--text-muted)',marginTop:8}}>
-              {shoesThisYear.length} shoe{shoesThisYear.length!==1?'s':''} purchased · {daysLeft} days remaining
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* BEST BY CATEGORY */}
+      {/* SPENDING SUMMARY MOVED TO BOTTOM OF PAGE */}
       <div className={styles.sectionHeader}><div className={styles.sectionTitle}>Best Shoes by Category</div></div>
       <div className={styles.bestGrid}>
         {(['daily','speed','race'] as const).map(cat => {
@@ -813,6 +744,57 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
           )
         })}
       </div>
+      {/* SPENDING SUMMARY */}
+      <div className={styles.sectionHeader} style={{marginTop:32}}>
+        <div className={styles.sectionTitle}>Shoe Spending</div>
+        <div style={{fontFamily:'DM Mono,monospace',fontSize:10,color:'var(--text-muted)',letterSpacing:'0.5px'}}>{now.getFullYear()} · {daysLeft} days left in year</div>
+      </div>
+      <div className={styles.spendingCard}>
+        <div className={styles.spendingRow}>
+          {/* Spent this year */}
+          <div className={styles.spendingBlock}>
+            <div className={styles.spendingBlockLabel}>Spent This Year</div>
+            <div className={styles.spendingBig}>${Math.round(totalSpentThisYear).toLocaleString()}</div>
+            <div className={styles.spendingBreakdown}>
+              {(['daily','speed','race'] as const).map(cat => spentByCategory[cat] > 0 && (
+                <div key={cat} className={styles.spendingBreakdownItem}>
+                  <span style={{color:CAT_COLORS[cat]}}>{catLabel(cat)}</span>
+                  <span>${Math.round(spentByCategory[cat]).toLocaleString()}</span>
+                </div>
+              ))}
+              {totalSpentThisYear === 0 && <div style={{color:'var(--text-dim)',fontSize:11,fontStyle:'italic'}}>Add prices to your shoes to track spending</div>}
+            </div>
+          </div>
+
+          <div className={styles.spendingDivider}/>
+
+          {/* Projected remainder */}
+          <div className={styles.spendingBlock}>
+            <div className={styles.spendingBlockLabel}>Projected Rest of Year</div>
+            <div className={styles.spendingBig} style={{color:'var(--warn)'}}>${Math.round(totalProj).toLocaleString()}</div>
+            <div className={styles.spendingBreakdown}>
+              {projDaily > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.daily}}>Daily</span><span>${Math.round(projDaily).toLocaleString()}</span></div>}
+              {projSpeed > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.speed}}>Speed</span><span>${Math.round(projSpeed).toLocaleString()}</span></div>}
+              {projRace  > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.race}}>Race</span><span>${Math.round(projRace).toLocaleString()}</span></div>}
+              {totalProj === 0 && <div style={{color:'var(--text-dim)',fontSize:11,fontStyle:'italic'}}>Log more runs to generate projection</div>}
+            </div>
+          </div>
+
+          <div className={styles.spendingDivider}/>
+
+          {/* Full year estimate */}
+          <div className={styles.spendingBlock}>
+            <div className={styles.spendingBlockLabel}>Full Year Estimate</div>
+            <div className={styles.spendingBig} style={{color:'var(--race)'}}>
+              ${Math.round(totalSpentThisYear + totalProj).toLocaleString()}
+            </div>
+            <div style={{fontFamily:'DM Mono,monospace',fontSize:10,color:'var(--text-muted)',marginTop:8}}>
+              {shoesThisYear.length} shoe{shoesThisYear.length!==1?'s':''} purchased · {daysLeft} days remaining
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* RACE MODAL */}
       <Modal open={raceModal} onClose={()=>setRaceModal(false)} title={editingRace?'Edit Race':'Add Upcoming Race'}>
         <FormGroup><FormLabel>Race Name</FormLabel><FormInput placeholder="e.g. Chicago Marathon 2026" value={raceName} onChange={e=>setRaceName(e.target.value)}/></FormGroup>
