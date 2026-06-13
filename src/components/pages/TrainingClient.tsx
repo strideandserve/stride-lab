@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { TrainingPlan, PlannedRun, Shoe, Run, RunType } from '@/lib/types'
-import { RUN_TYPE_LABELS, RUN_TYPE_COLORS, DAY_LABELS, catLabel, CAT_COLORS, paceToSeconds } from '@/lib/utils'
+import { RUN_TYPE_LABELS, RUN_TYPE_COLORS, DAY_LABELS, catLabel, CAT_COLORS, paceToSeconds, getMonday } from '@/lib/utils'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
 import { toast } from '@/components/Toast'
@@ -18,7 +18,7 @@ interface Props {
 }
 
 const RUN_TYPES: RunType[] = ['recovery','recovery_strides','gen_aerobic','med_long','lt_run','tempo','long_run','speed_intervals']
-const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 
 export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Props) {
   const router   = useRouter()
@@ -73,11 +73,12 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   // Get planned runs for current plan
   const planRuns = plannedRuns.filter(r => r.plan_id === currentPlan?.id)
 
-  // Current week based on plan start date
+  // Current week based on plan start date (Monday-aligned weeks)
   const today = new Date(); today.setHours(0,0,0,0)
   function getCurrentWeek(plan: TrainingPlan) {
-    const start = new Date(plan.start_date + 'T00:00:00')
-    const diff  = Math.floor((today.getTime() - start.getTime()) / (7 * 864e5))
+    const todayMonday = getMonday(today.toISOString().split('T')[0])
+    const startMonday = getMonday(plan.start_date)
+    const diff = Math.floor((todayMonday.getTime() - startMonday.getTime()) / (7 * 864e5))
     return Math.max(1, Math.min(plan.weeks, diff + 1))
   }
 
@@ -214,10 +215,10 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
     toast('Run linked'); setSavingLink(false); setLinkModal(false); refresh()
   }
 
-  // Build week dates
+  // Build week dates — Monday-aligned (Mon...Sun)
   function getWeekDates(plan: TrainingPlan, week: number) {
-    const start = new Date(plan.start_date + 'T00:00:00')
-    const weekStart = new Date(start.getTime() + (week - 1) * 7 * 864e5)
+    const startMonday = getMonday(plan.start_date)
+    const weekStart = new Date(startMonday.getTime() + (week - 1) * 7 * 864e5)
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(weekStart.getTime() + i * 864e5)
       return d.toISOString().split('T')[0]
