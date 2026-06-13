@@ -118,3 +118,25 @@ export const BRAND_LOGOS: Record<string, string> = {
 export function getBrandLogoUrl(brand: string): string | null {
   return BRAND_LOGOS[(brand || '').toLowerCase().trim()] ?? null
 }
+
+// ── RACE LOGOS
+const RACE_LOGOS: { keywords: string[]; url: string }[] = [
+  { keywords: ['chicago'],                    url: 'https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Marathon_logo.svg' },
+  { keywords: ['new york', 'nyc', 'tcs new'], url: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/2d/TCS_New_York_City_Marathon_Logo.svg/250px-TCS_New_York_City_Marathon_Logo.svg.png' },
+  { keywords: ['milwaukee'],                  url: 'https://upload.wikimedia.org/wikipedia/en/thumb/e/e3/Lakefront_Marathon_logo.png/200px-Lakefront_Marathon_logo.png' },
+  { keywords: ['boston'],                     url: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Boston_Marathon_logo_%28updated_2024%29.png/250px-Boston_Marathon_logo_%28updated_2024%29.png' },
+  { keywords: ['london'],                     url: 'https://upload.wikimedia.org/wikipedia/en/thumb/2/26/TCS_London_Marathon_logo.svg/250px-TCS_London_Marathon_logo.svg.png' },
+  { keywords: ['berlin'],                     url: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/66/BMW_Berlin_Marathon_logo.svg/250px-BMW_Berlin_Marathon_logo.svg.png' },
+  { keywords: ['tokyo'],                      url: 'https://upload.wikimedia.org/wikipedia/en/thumb/9/9f/Tokyo_Marathon_logo.svg/250px-Tokyo_Marathon_logo.svg.png' },
+  { keywords: ['los angeles', 'la marathon'], url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9b/LA_Marathon_logo.svg/250px-LA_Marathon_logo.svg.png' },
+  { keywords: ['marine corps'],               url: 'https://upload.wikimedia.org/wikipedia/en/thumb/a/a9/Marine_Corps_Marathon_logo.svg/200px-Marine_Corps_Marathon_logo.svg.png' },
+]
+
+export function getRaceLogoUrl(raceName: string | null | undefined): string | null {
+  if (!raceName) return null
+  const lower = raceName.toLowerCase()
+  for (const { keywords, url } of RACE_LOGOS) {
+    if (keywords.some(k => lower.includes(k))) return url
+  }
+  return null
+}
