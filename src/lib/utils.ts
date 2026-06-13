@@ -43,17 +43,109 @@ export function derivePaceFromFinish(finishStr: string, miles: number): string |
   return `${m}:${s}`
 }
 
-export function computeCompositeScore(runs: Run[]): number | null {
+// ── IMPROVED COMPOSITE SCORING ──
+//
+// The composite score is a 0-100 "how well did this shoe perform" metric.
+// It's condition-adjusted so a hot, hilly run isn't penalized vs a cool flat one,
+// and it weighs cardiac efficiency (how economical the effort was) alongside pace.
+//
+// Components:
+//  - Condition-Adjusted Pace Score (base weight 35%)
+//  - Cardiac Efficiency Score      (base weight 35%)
+//  - Comfort Score                 (base weight 20%)
+//  - Run Type Modifier              (base weight 10%, re-weights the above 3
+//                                     based on the workout's purpose)
+//
+// Optional inputs (temp, humidity, elevation, run_type) gracefully degrade —
+// if missing, that adjustment is simply skipped so older runs still score.
+
+// Minimal shape needed from planned_runs for scoring — avoids circular import of full type
+export interface PlannedRunLike {
+  logged_run_id: string | null
+  run_type: string
+}
+
+// Adjust a raw pace (seconds/mile) for heat, humidity, and elevation gain
+// to estimate the "effort-equivalent" pace in ideal conditions.
+export function adjustedPaceSeconds(run: Run): number | null {
+  const raw = paceToSeconds(run.pace)
+  if (raw === null) return null
+  let adjusted = raw
+
+  // Temperature: ~2% faster-equivalent per 10°F above 55°F
+  if (run.temp != null && run.temp > 55) {
+    const tempPenaltyPct = ((run.temp - 55) / 10) * 0.02
+    adjusted = adjusted / (1 + tempPenaltyPct)
+  }
+
+  // Humidity: additional ~1% per 10% humidity above 60%, compounding with heat
+  if (run.humidity != null && run.humidity > 60) {
+    const humidityPenaltyPct = ((run.humidity - 60) / 10) * 0.01
+    adjusted = adjusted / (1 + humidityPenaltyPct)
+  }
+
+  // Elevation: add back ~90 sec/mile for every 1000ft gained over the run
+  if (run.elevation != null && run.elevation > 0 && run.miles > 0) {
+    const secsPerMile = (run.elevation / 1000) * 90 / run.miles
+    adjusted = adjusted - secsPerMile // subtract because adjusted pace should look FASTER once we credit the climbing
+  }
+
+  return Math.max(180, adjusted) // floor at 3:00/mi to avoid runaway values
+}
+
+// Run-type based weighting for the 3 score components: [pace, efficiency, comfort]
+function runTypeWeights(runType?: string | null): [number, number, number] {
+  switch (runType) {
+    case 'recovery':
+    case 'recovery_strides':
+      return [0.15, 0.35, 0.50]
+    case 'lt_run':
+    case 'tempo':
+      return [0.50, 0.30, 0.20]
+    case 'long_run':
+      return [0.30, 0.35, 0.35]
+    case 'speed_intervals':
+      return [0.60, 0.30, 0.10]
+    case 'gen_aerobic':
+    case 'med_long':
+    default:
+      return [0.35, 0.35, 0.30]
+  }
+}
+
+export function computeCompositeScore(runs: Run[], plannedRuns: PlannedRunLike[] = []): number | null {
   const valid = runs.filter(r => r.pace && r.hr && r.comfort)
   if (!valid.length) return null
+
+  // Map run id -> run_type from any linked planned run
+  const runTypeByRunId: Record<string, string> = {}
+  for (const pr of plannedRuns) {
+    if (pr.logged_run_id) runTypeByRunId[pr.logged_run_id] = pr.run_type
+  }
+
   const scores = valid.map(r => {
-    const ps = paceToSeconds(r.pace)
-    if (!ps) return null
-    const paceScore    = Math.max(0, Math.min(100, ((720 - ps) / (720 - 300)) * 100))
-    const hrScore      = Math.max(0, Math.min(100, ((200 - (r.hr ?? 160)) / (200 - 120)) * 100))
+    const adjSecs = adjustedPaceSeconds(r)
+    if (adjSecs === null) return null
+
+    // Condition-adjusted pace score (5:00 - 12:00 /mi range)
+    const paceScore = Math.max(0, Math.min(100, ((720 - adjSecs) / (720 - 300)) * 100))
+
+    // Cardiac efficiency: ratio of adjusted pace seconds to heart rate.
+    // Lower ratio (faster pace per beat) = better. Normalize 300 (best) - 900 (worst).
+    const hr = r.hr ?? 160
+    const efficiencyRatio = adjSecs / hr * 60 // scale so typical ratios land ~3-9
+    const efficiencyScore = Math.max(0, Math.min(100, ((9 - efficiencyRatio) / (9 - 3)) * 100))
+
+    // Comfort score
     const comfortScore = ((r.comfort ?? 5) / 10) * 100
-    return paceScore * 0.40 + hrScore * 0.35 + comfortScore * 0.25
+
+    // Run type weighting
+    const runType = runTypeByRunId[r.id] ?? null
+    const [wPace, wEff, wComfort] = runTypeWeights(runType)
+
+    return paceScore * wPace + efficiencyScore * wEff + comfortScore * wComfort
   }).filter((s): s is number => s !== null)
+
   if (!scores.length) return null
   return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length * 10) / 10
 }

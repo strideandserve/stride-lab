@@ -193,7 +193,7 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
   // Best by category
   function bestShoe(cat: string) {
     const scored = activeShoes.filter(s=>s.category===cat).map(s=>({
-      s, score: computeCompositeScore(runs.filter(r=>r.shoe_id===s.id))
+      s, score: computeCompositeScore(runs.filter(r=>r.shoe_id===s.id), plannedRuns)
     })).filter(x=>x.score!==null).sort((a,b)=>(b.score!-a.score!))
     return scored[0] ?? null
   }
@@ -646,6 +646,49 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
           )
         })}
       </div>
+
+      {/* SCORING METHODOLOGY */}
+      <details className={styles.methodology}>
+        <summary className={styles.methodologySummary}>
+          <span className={styles.methodologyIcon}>ⓘ</span> How the composite score works
+        </summary>
+        <div className={styles.methodologyBody}>
+          <p>
+            Every shoe's score is condition-adjusted — a run in the heat, humidity, or hills
+            isn't penalized the same as a flat, cool-weather effort. The score blends three
+            components, re-weighted based on the type of workout:
+          </p>
+          <div className={styles.methodologyGrid}>
+            <div className={styles.methodologyItem}>
+              <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>Condition-Adjusted Pace</div>
+              <div className={styles.methodologyDesc}>
+                Your pace, adjusted for temperature (above 55°F), humidity (above 60%), and
+                elevation gain — so a hot, hilly long run is scored fairly against a cool, flat one.
+              </div>
+            </div>
+            <div className={styles.methodologyItem}>
+              <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>Cardiac Efficiency</div>
+              <div className={styles.methodologyDesc}>
+                The ratio of your adjusted pace to heart rate — how much speed you're getting
+                per heartbeat. A more economical effort scores higher than just raw HR.
+              </div>
+            </div>
+            <div className={styles.methodologyItem}>
+              <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>Comfort</div>
+              <div className={styles.methodologyDesc}>
+                Your 0–10 shoe comfort rating from each run, converted to a 0–100 scale.
+              </div>
+            </div>
+          </div>
+          <p className={styles.methodologyNote}>
+            <strong>Run type changes the weighting.</strong> Recovery runs lean on comfort and
+            efficiency over speed. Tempo, LT, and speed workouts weight pace heavily. Long runs
+            and general aerobic runs use a balanced blend. This means the same shoe can score
+            differently across run types — which is the point: a shoe that's great for easy
+            days might not be your best tempo shoe, and vice versa.
+          </p>
+        </div>
+      </details>
 
       {/* SHOE LIFESPAN BAR CHART */}
       <div className={styles.sectionHeader} style={{marginTop:32}}>

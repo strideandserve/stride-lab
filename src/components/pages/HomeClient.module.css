@@ -1,23 +1,6 @@
 .wrap { max-width: 1400px; }
 
-.header { display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:32px;flex-wrap:wrap; }
-.headerLeft { flex:1;min-width:0; }
-
-/* MARATHON WIDGET */
-.marathonWidget { flex-shrink:0;width:280px;background:var(--surface);border:1px solid rgba(57,255,106,0.2);border-radius:12px;padding:20px 22px; }
-.marathonWidgetTop { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px; }
-.marathonWidgetName { font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;margin-bottom:14px;line-height:1.1; }
-.marathonDaysRow { display:flex;align-items:baseline;gap:8px;margin-bottom:16px; }
-.marathonDaysNum { font-family:'Bebas Neue',sans-serif;font-size:54px;line-height:1;color:var(--accent);text-shadow:0 0 24px rgba(57,255,106,0.3); }
-.marathonDaysUnit { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;line-height:1.5; }
-.marathonTimeline { display:flex;align-items:center;gap:8px; }
-.marathonTimelineLabel { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--text-muted);text-transform:uppercase;white-space:nowrap;flex-shrink:0; }
-.marathonTimelineTrack { flex:1;height:1px;background:var(--border);position:relative; }
-.marathonTimelineStartDot { position:absolute;left:-3px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--text-muted); }
-.marathonTimelineDot { position:absolute;right:-3px;top:-4px;width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(57,255,106,0.7); }
-.marathonTimelineDate { font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--accent);flex-shrink:0; }
-.marathonGoal { font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:8px;letter-spacing:0.5px; }
-.marathonRaceLogo { display:block;width:140px;height:auto;margin-bottom:14px;filter:brightness(0) invert(1);opacity:0.85; }
+.header { margin-bottom: 32px; }
 
 .greeting {
   font-family: 'Bebas Neue', sans-serif;
@@ -53,6 +36,66 @@
 .recentDate { flex-shrink:0;text-align:right; }
 .recentDateLabel { display:block;font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:2px; }
 .recentDateVal { font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent); }
+
+/* SCORING METHODOLOGY */
+.methodology {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin: 16px 0 8px;
+}
+.methodologySummary {
+  cursor: pointer;
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+.methodologySummary::-webkit-details-marker { display: none; }
+.methodologySummary:hover { color: var(--accent); }
+.methodologyIcon { font-size: 14px; }
+.methodologyBody {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.methodologyBody p { margin: 0 0 14px; }
+.methodologyGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.methodologyItem {}
+.methodologyLabel {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.methodologyDesc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.methodologyNote {
+  font-size: 12px;
+  color: var(--text-dim);
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+.methodologyNote strong { color: var(--text-muted); }
 
 /* SECTION */
 .sectionHeader { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px; }
@@ -149,7 +192,8 @@
   color:var(--accent);text-shadow:0 0 20px rgba(57,255,106,0.3);
 }
 .raceCountdownLabel { font-family:'DM Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--text-muted);text-transform:uppercase;margin-bottom:8px; }
-.raceCountdownName { font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:4px; }
+.raceCountdownName { font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap; }
+.raceCountdownLogo { height:22px;width:auto;max-width:70px;object-fit:contain;opacity:0.9;flex-shrink:0; }
 .raceCountdownMeta { font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:12px;line-height:1.5; }
 .raceCountdownActions { display:flex;gap:8px; }
 .raceEditBtn { font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);background:transparent;border:1px solid rgba(57,255,106,0.25);border-radius:4px;padding:3px 8px;cursor:pointer; }
@@ -180,5 +224,5 @@
   .predDate { font-size:18px;width:100%; }
   .monthToggles { gap:4px; }
   .monthBtn { font-size:9px;padding:4px 7px; }
-  .marathonWidget { width:100%; }
+  .methodologyGrid { grid-template-columns:1fr;gap:14px; }
 }
