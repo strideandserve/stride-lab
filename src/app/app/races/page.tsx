@@ -6,10 +6,11 @@ export default async function RacesPage() {
   const supabase = createServerComponentClient({ cookies })
   const { data: { session } } = await supabase.auth.getSession()
 
-  const [{ data: shoes }, { data: runs }] = await Promise.all([
+  const [{ data: shoes }, { data: runs }, { data: profileRow }] = await Promise.all([
     supabase.from('shoes').select('*').eq('user_id', session!.user.id),
     supabase.from('runs').select('*').eq('user_id', session!.user.id).eq('is_race', true).order('date', { ascending: false }),
+    supabase.from('profiles').select('birth_year, gender').eq('id', session!.user.id).single(),
   ])
 
-  return <RacesClient shoes={shoes ?? []} races={runs ?? []} />
+  return <RacesClient shoes={shoes ?? []} races={runs ?? []} profile={profileRow ?? null} />
 }

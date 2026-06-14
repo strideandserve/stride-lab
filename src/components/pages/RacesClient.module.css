@@ -13,7 +13,6 @@
 .raceName { font-weight:600;font-size:13px; }
 .prTag { color:var(--accent);font-family:'DM Mono',monospace;font-size:10px;margin-left:6px; }
 .raceShoeName { font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace; }
-.raceNameLogo { display:block;width:90px;height:auto;margin:4px 0 2px;filter:brightness(0) invert(1);opacity:0.75; }
 .raceStat { font-family:'DM Mono',monospace;font-size:12px; }
 .typeBadge { font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:100px;letter-spacing:1px;text-transform:uppercase; }
 .marathon { background:rgba(57,255,106,0.1);color:var(--daily);border:1px solid rgba(57,255,106,0.2); }
@@ -58,7 +57,23 @@
 .podiumRankLabel.bronze { color:rgba(205,127,50,0.4); }
 .podiumEmpty { width:100%;background:var(--surface);border:1px dashed var(--border);border-radius:10px 10px 0 0;padding:28px 14px;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--text-dim);font-family:'DM Mono',monospace;font-size:10px;text-align:center; }
 
-.empty { text-align:center;padding:64px 20px;color:var(--text-dim);display:flex;flex-direction:column;gap:8px;align-items:center;font-family:'DM Mono',monospace; }
+.raceLogoInline {
+  height: 20px;
+  width: auto;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 8px;
+  opacity: 0.9;
+}
+
+.podiumRaceLogo {
+  height: 28px;
+  width: auto;
+  max-width: 80px;
+  object-fit: contain;
+  opacity: 0.9;
+  margin: 2px 0;
+}
 
 @media (max-width:768px) {
   .title { font-size:40px; }
@@ -72,4 +87,132 @@
   .podiumCard { border-radius:10px 0 0 10px;flex:1;padding:12px; }
   .podiumBlock { width:44px;flex-shrink:0;border-radius:0 10px 10px 0; }
   .podiumBlock.gold,.podiumBlock.silver,.podiumBlock.bronze { height:auto; }
+}
+
+/* PERCENTILE RANKINGS */
+.percentileSection { margin-top: 40px; }
+.percentileEmpty {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 12px;
+}
+.percentileEmpty strong { color: var(--accent); }
+
+.percentileGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.percentileCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+.percentileCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.percentileRaceName {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.5px;
+  color: var(--text);
+}
+.percentileMeta {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+.percentileBadge { text-align: right; flex-shrink: 0; }
+.percentileBadgeVal {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  color: var(--accent);
+  text-shadow: 0 0 16px rgba(57,255,106,0.3);
+  line-height: 1;
+}
+.percentileBadgeLabel {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  margin-top: 2px;
+  max-width: 110px;
+}
+
+.percentileBarTrack {
+  position: relative;
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 100px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.percentileBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--red), var(--warn), var(--accent));
+  border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+.percentileBenchTable {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+.percentileBenchItem {
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+}
+.percentileBenchActive {
+  border-color: var(--accent);
+  background: rgba(57,255,106,0.08);
+}
+.percentileBenchLabel {
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.percentileBenchTime {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  font-weight: 600;
+}
+.percentileBenchActive .percentileBenchTime { color: var(--accent); }
+
+.percentileYourTime {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  text-align: center;
+}
+.percentileYourTime strong { color: var(--text); }
+
+@media (max-width: 600px) {
+  .percentileBenchTable { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .percentileBenchItem { padding: 6px 2px; }
+  .percentileBenchLabel { font-size: 7px; }
+  .percentileBenchTime { font-size: 9px; }
+  .percentileGrid { grid-template-columns: 1fr; }
 }

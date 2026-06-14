@@ -2,6 +2,9 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase'
+import Modal from '@/components/Modal'
+import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
+import type { Profile } from '@/lib/types'
 import styles from './AppShell.module.css'
 
 const TABS = [
@@ -12,7 +15,7 @@ const TABS = [
   { id: 'races',    href: '/app/races',     icon: '🏁', label: 'Races'    },
 ]
 
-export default function AppShell({ children, userName }: { children: React.ReactNode; userName: string }) {
+export default function AppShell({ children, userName, profile }: { children: React.ReactNode; userName: string; profile: Profile }) {
   const pathname   = usePathname()
   const router     = useRouter()
   const supabase   = createClient()
@@ -20,6 +23,29 @@ export default function AppShell({ children, userName }: { children: React.React
   const mImportRef = useRef<HTMLInputElement>(null)
   const [importing, setImporting] = useState(false)
   const [importMsg, setImportMsg] = useState<string | null>(null)
+
+  // ── RUNNER PROFILE (height, weight, age, gender — used for race percentiles)
+  const profileIncomplete = !profile?.birth_year || !profile?.gender
+  const [profileModal, setProfileModal] = useState(profileIncomplete)
+  const [pBirthYear, setPBirthYear] = useState(profile?.birth_year ? String(profile.birth_year) : '')
+  const [pGender, setPGender]       = useState<string>(profile?.gender ?? '')
+  const [pHeight, setPHeight]       = useState(profile?.height_in ? String(profile.height_in) : '')
+  const [pWeight, setPWeight]       = useState(profile?.weight_lb ? String(profile.weight_lb) : '')
+  const [savingProfile, setSavingProfile] = useState(false)
+
+  async function saveProfile() {
+    if (!pBirthYear || !pGender) return
+    setSavingProfile(true)
+    await supabase.from('profiles').update({
+      birth_year: parseInt(pBirthYear),
+      gender: pGender,
+      height_in: pHeight ? parseFloat(pHeight) : null,
+      weight_lb: pWeight ? parseFloat(pWeight) : null,
+    }).eq('id', profile.id)
+    setSavingProfile(false)
+    setProfileModal(false)
+    router.refresh()
+  }
 
   async function signOut() {
     await supabase.auth.signOut()
@@ -134,6 +160,7 @@ export default function AppShell({ children, userName }: { children: React.React
             {importing ? '...' : '⬆ Import'}
             <input ref={importRef} type="file" accept=".json" style={{display:'none'}} onChange={handleImport} />
           </label>
+          <button className={styles.dataBtn} onClick={()=>setProfileModal(true)}>⚙ Profile</button>
           <button className={styles.dataBtn} onClick={signOut}>Sign Out</button>
         </div>
       </nav>
@@ -169,7 +196,49 @@ export default function AppShell({ children, userName }: { children: React.React
           <span className={styles.tabIcon}>⬇</span>
           <span className={styles.tabLabel}>Export</span>
         </div>
+        <div className={styles.tabItem} onClick={()=>setProfileModal(true)}>
+          <span className={styles.tabIcon}>⚙</span>
+          <span className={styles.tabLabel}>Profile</span>
+        </div>
       </nav>
+
+      {/* RUNNER PROFILE MODAL */}
+      <Modal open={profileModal} onClose={()=>{ if (!profileIncomplete) setProfileModal(false) }} title="Your Runner Profile">
+        <div className={styles.profileIntro}>
+          Used to show how your race times compare to other runners of your age and gender —
+          you&apos;ll see this on the Race Log as percentile rankings for the Marathon, Half, 10K, and 5K.
+        </div>
+        <FormRow>
+          <FormGroup>
+            <FormLabel>Birth Year</FormLabel>
+            <FormInput type="number" placeholder="1992" value={pBirthYear} onChange={e=>setPBirthYear(e.target.value)}/>
+          </FormGroup>
+          <FormGroup>
+            <FormLabel>Gender</FormLabel>
+            <FormSelect value={pGender} onChange={e=>setPGender(e.target.value)}>
+              <option value="">Select...</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </FormSelect>
+          </FormGroup>
+        </FormRow>
+        <FormRow>
+          <FormGroup>
+            <FormLabel>Height (inches, optional)</FormLabel>
+            <FormInput type="number" step="0.1" placeholder="70" value={pHeight} onChange={e=>setPHeight(e.target.value)}/>
+          </FormGroup>
+          <FormGroup>
+            <FormLabel>Weight (lbs, optional)</FormLabel>
+            <FormInput type="number" step="0.1" placeholder="165" value={pWeight} onChange={e=>setPWeight(e.target.value)}/>
+          </FormGroup>
+        </FormRow>
+        <FormActions>
+          {!profileIncomplete && <Btn variant="ghost" onClick={()=>setProfileModal(false)}>Cancel</Btn>}
+          <Btn variant="primary" onClick={saveProfile} disabled={savingProfile || !pBirthYear || !pGender}>
+            {savingProfile ? 'Saving…' : 'Save'}
+          </Btn>
+        </FormActions>
+      </Modal>
     </div>
   )
 }

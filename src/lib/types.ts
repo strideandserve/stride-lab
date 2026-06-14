@@ -4,6 +4,10 @@ export type RaceType = 'marathon' | 'half' | 'ten_k' | 'five_k' | 'other'
 export interface Profile {
   id: string
   name: string
+  birth_year: number | null
+  gender: 'male' | 'female' | null
+  height_in: number | null
+  weight_lb: number | null
   created_at: string
 }
 

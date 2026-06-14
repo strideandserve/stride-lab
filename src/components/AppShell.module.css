@@ -133,3 +133,11 @@
   .main { padding: 20px 16px 100px; }
   .logo { font-size: 22px; }
 }
+
+.profileIntro {
+  font-family: 'DM Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}

@@ -3,15 +3,17 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run } from '@/lib/types'
-import { paceToSeconds, paceToFinishTime, raceTypeLabel, derivePaceFromFinish, CAT_COLORS } from '@/lib/utils'
+import { paceToSeconds, paceToFinishTime, raceTypeLabel, derivePaceFromFinish, finishTimeToSeconds, secondsToPace, CAT_COLORS, getRaceLogoUrl } from '@/lib/utils'
+import { raceTypeToDistance, getPercentileRow, estimatePercentile, percentileToTopPct, DISTANCE_LABELS, getAgeGroup, type Gender } from '@/lib/percentiles'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
 import { toast } from '@/components/Toast'
 import styles from './RacesClient.module.css'
 
-interface Props { shoes: Shoe[]; races: Run[] }
+interface ProfileLite { birth_year: number | null; gender: Gender | null }
+interface Props { shoes: Shoe[]; races: Run[]; profile: ProfileLite | null }
 
-export default function RacesClient({ shoes, races }: Props) {
+export default function RacesClient({ shoes, races, profile }: Props) {
   const router   = useRouter()
   const supabase = createClient()
   const [editModal, setEditModal] = useState(false)
@@ -71,6 +73,22 @@ export default function RacesClient({ shoes, races }: Props) {
   const medals = ['gold','silver','bronze']
   const medalEmoji = ['🥇','🥈','🥉']
 
+  // ── PERCENTILE RANKINGS
+  const hasProfile = !!(profile?.birth_year && profile?.gender)
+  const percentileRaces = hasProfile ? races
+    .map(r => {
+      const distance = raceTypeToDistance(r.race_type)
+      if (!distance) return null
+      const timeSecs = r.finish_time ? finishTimeToSeconds(r.finish_time) : (r.pace && r.miles ? (paceToSeconds(r.pace)||0) * r.miles : null)
+      if (!timeSecs) return null
+      const raceYear = r.date ? new Date(r.date).getFullYear() : new Date().getFullYear()
+      const age = raceYear - (profile!.birth_year as number)
+      const row = getPercentileRow(distance, profile!.gender as Gender, age)
+      const percentile = estimatePercentile(timeSecs, row)
+      return { run: r, distance, timeSecs, age, ageGroup: getAgeGroup(age), row, percentile }
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null) : []
+
   return (
     <div className={styles.wrap}>
       <div className={styles.title}>RACE<br/>LOG</div>
@@ -106,10 +124,12 @@ export default function RacesClient({ shoes, races }: Props) {
               return (
                 <div key={r.id} className={styles.tableRow}>
                   <div>
-                    <div className={styles.raceName}>{r.race_name||'Unnamed Race'}{isPR&&<span className={styles.prTag}>★ PR</span>}</div>
-                    {r.race_name?.toLowerCase().includes('chicago') && (
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/d/db/Chicago_Marathon_logo.svg" alt="Chicago Marathon" className={styles.raceNameLogo} />
+                    <div className={styles.raceName}>
+                    {getRaceLogoUrl(r.race_name) && (
+                      <img src={getRaceLogoUrl(r.race_name)!} alt={r.race_name||''} className={styles.raceLogoInline} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
                     )}
+                    {r.race_name||'Unnamed Race'}{isPR&&<span className={styles.prTag}>★ PR</span>}
+                  </div>
                     <div className={styles.raceShoeName}>{shoe?`${shoe.brand} ${shoe.name}`:'—'}</div>
                   </div>
                   <div><span className={`${styles.typeBadge} ${styles[r.race_type||'other']}`}>{raceTypeLabel(r.race_type)}</span></div>
@@ -152,6 +172,9 @@ export default function RacesClient({ shoes, races }: Props) {
                     <div key={i} className={styles.podiumCol}>
                       <div className={styles.podiumCard}>
                         <div className={`${styles.podiumMedal} ${styles[medal]}`}>{emoji}</div>
+                        {getRaceLogoUrl(r.race_name) && (
+                          <img src={getRaceLogoUrl(r.race_name)!} alt={r.race_name||''} className={styles.podiumRaceLogo} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
+                        )}
                         <div className={styles.podiumRaceName}>{r.race_name||'Unnamed Race'}</div>
                         <div className={styles.podiumDate}>{r.date}{shoe?` · ${shoe.name}`:''}</div>
                         <div className={`${styles.podiumTime} ${styles[medal]}`}>{finish}</div>
@@ -172,6 +195,72 @@ export default function RacesClient({ shoes, races }: Props) {
             </div>
           )}
         </>
+      )}
+
+      {/* PERCENTILE RANKINGS */}
+      {races.length > 0 && (
+        <div className={styles.percentileSection}>
+          <div className={styles.podiumTitle}>HOW YOU RANK</div>
+          {!hasProfile ? (
+            <div className={styles.percentileEmpty}>
+              Add your birth year and gender in <strong>⚙ Profile</strong> (top nav) to see how your
+              race times compare to other runners of your age and gender.
+            </div>
+          ) : percentileRaces.length === 0 ? (
+            <div className={styles.percentileEmpty}>
+              Log a finish time for a Marathon, Half Marathon, 10K, or 5K to see your percentile ranking.
+            </div>
+          ) : (
+            <div className={styles.percentileGrid}>
+              {percentileRaces.map(({ run, distance, timeSecs, ageGroup, row, percentile }) => (
+                <div key={run.id} className={styles.percentileCard}>
+                  <div className={styles.percentileCardHeader}>
+                    <div>
+                      <div className={styles.percentileRaceName}>{run.race_name || 'Unnamed Race'}</div>
+                      <div className={styles.percentileMeta}>
+                        {DISTANCE_LABELS[distance]} · {run.date} · {profile?.gender==='male'?'Male':'Female'} {ageGroup}
+                      </div>
+                    </div>
+                    <div className={styles.percentileBadge}>
+                      <div className={styles.percentileBadgeVal}>{percentileToTopPct(percentile)}</div>
+                      <div className={styles.percentileBadgeLabel}>for your age &amp; gender</div>
+                    </div>
+                  </div>
+                  <div className={styles.percentileBarTrack}>
+                    <div className={styles.percentileBarFill} style={{width:`${percentile}%`}}/>
+                  </div>
+                  <div className={styles.percentileBenchTable}>
+                    {([
+                      { label: 'Top 10%', secs: row.p90 },
+                      { label: 'Top 25%', secs: row.p75 },
+                      { label: 'Median',  secs: row.p50 },
+                      { label: 'Top 75%', secs: row.p25 },
+                      { label: 'Back of Pack', secs: row.p10 },
+                    ] as const).map((b) => {
+                      const benches = [row.p90,row.p75,row.p50,row.p25,row.p10]
+                      let closestIdx = 0, closestDiff = Infinity
+                      benches.forEach((s,idx)=>{ const d=Math.abs(s-timeSecs); if(d<closestDiff){closestDiff=d;closestIdx=idx} })
+                      const labels = ['Top 10%','Top 25%','Median','Top 75%','Back of Pack']
+                      const isClosest = labels[closestIdx]===b.label
+                      const display = (distance==='marathon'||distance==='half')
+                        ? new Date(b.secs*1000).toISOString().substring(11,19).replace(/^0/,'')
+                        : secondsToPace(b.secs)
+                      return (
+                        <div key={b.label} className={`${styles.percentileBenchItem} ${isClosest?styles.percentileBenchActive:''}`}>
+                          <div className={styles.percentileBenchLabel}>{b.label}</div>
+                          <div className={styles.percentileBenchTime}>{display}</div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <div className={styles.percentileYourTime}>
+                    Your time: <strong>{run.finish_time || secondsToPace(timeSecs)}</strong>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* EDIT MODAL */}
