@@ -1,5 +1,10 @@
 .wrap {}
 .title { font-family:'Bebas Neue',sans-serif;font-size:56px;letter-spacing:3px;line-height:1;margin-bottom:28px; }
+.titleRow { display:flex; justify-content:space-between; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom: 28px; }
+.titleRow .title { margin-bottom: 0; }
+@media (max-width: 600px) {
+  .titleRow { flex-direction: column; }
+}
 .summaryBar { display:flex;gap:24px;flex-wrap:wrap;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:28px; }
 .summaryItem { display:flex;flex-direction:column;gap:3px; }
 .summaryVal { font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);line-height:1; }
@@ -153,21 +158,6 @@
   max-width: 110px;
 }
 
-.percentileBarTrack {
-  position: relative;
-  height: 8px;
-  background: var(--surface2);
-  border-radius: 100px;
-  overflow: hidden;
-  margin-bottom: 16px;
-}
-.percentileBarFill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--red), var(--warn), var(--accent));
-  border-radius: 100px;
-  transition: width 0.4s ease;
-}
-
 .percentileBenchTable {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -175,7 +165,7 @@
 }
 .percentileBenchItem {
   text-align: center;
-  padding: 8px 4px;
+  padding: 12px 6px;
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface2);
@@ -186,15 +176,16 @@
 }
 .percentileBenchLabel {
   font-family: 'DM Mono', monospace;
-  font-size: 8px;
+  font-size: 11px;
   letter-spacing: 0.5px;
-  color: var(--text-dim);
+  color: var(--text-muted);
   text-transform: uppercase;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  font-weight: 600;
 }
 .percentileBenchTime {
   font-family: 'DM Mono', monospace;
-  font-size: 11px;
+  font-size: 15px;
   color: var(--text);
   font-weight: 600;
 }
@@ -211,8 +202,11 @@
 
 @media (max-width: 600px) {
   .percentileBenchTable { grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .percentileBenchItem { padding: 6px 2px; }
-  .percentileBenchLabel { font-size: 7px; }
-  .percentileBenchTime { font-size: 9px; }
+  .percentileBenchItem { padding: 8px 4px; }
+  .percentileBenchLabel { font-size: 9px; }
+  .percentileBenchTime { font-size: 12px; }
   .percentileGrid { grid-template-columns: 1fr; }
 }
+
+.slider { -webkit-appearance:none;width:100%;height:5px;border-radius:3px;background:var(--surface2);outline:none;margin-top:8px;border:1px solid var(--border); }
+.slider::-webkit-slider-thumb { -webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--bg);box-shadow:0 0 0 1px var(--accent); }

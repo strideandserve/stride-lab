@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run } from '@/lib/types'
-import { paceToSeconds, paceToFinishTime, raceTypeLabel, derivePaceFromFinish, finishTimeToSeconds, secondsToPace, CAT_COLORS, getRaceLogoUrl } from '@/lib/utils'
+import { paceToSeconds, paceToFinishTime, raceTypeLabel, derivePaceFromFinish, finishTimeToSeconds, secondsToPace, formatPaceInput, CAT_COLORS, getRaceLogoUrl } from '@/lib/utils'
 import { raceTypeToDistance, getPercentileRow, estimatePercentile, percentileToTopPct, getP95, DISTANCE_LABELS, getAgeGroup, type Gender } from '@/lib/percentiles'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
@@ -17,11 +17,14 @@ export default function RacesClient({ shoes, races, profile }: Props) {
   const router   = useRouter()
   const supabase = createClient()
   const [editModal, setEditModal] = useState(false)
+  const [logModal, setLogModal]   = useState(false)
   const [editRun, setEditRun]     = useState<Run|null>(null)
+  const [runShoeId, setRunShoeId] = useState('')
   const [runMiles, setRunMiles]   = useState('')
   const [runDate, setRunDate]     = useState('')
   const [runPace, setRunPace]     = useState('')
   const [runHr, setRunHr]         = useState('')
+  const [runComfort, setRunComfort] = useState(7.5)
   const [runTemp, setRunTemp]     = useState('')
   const [runHumidity, setRunHumidity] = useState('')
   const [runFinish, setRunFinish] = useState('')
@@ -36,9 +39,18 @@ export default function RacesClient({ shoes, races, profile }: Props) {
   const prOf = (arr: Run[]) => arr.filter(r=>r.pace).reduce<Run|null>((b,r)=>!b||paceToSeconds(r.pace)!<paceToSeconds(b.pace)!?r:b,null)
   const mPR = prOf(marathons), hPR = prOf(halfs)
 
+  function openLogRace() {
+    setEditRun(null)
+    setRunShoeId(shoes.find(s=>s.category==='race')?.id ?? shoes[0]?.id ?? '')
+    setRunMiles('26.2'); setRunDate(new Date().toISOString().split('T')[0])
+    setRunPace(''); setRunHr(''); setRunComfort(7.5)
+    setRunTemp(''); setRunHumidity(''); setRunFinish('')
+    setRunRaceName(''); setRunRaceType('marathon'); setPacePrev('')
+    setLogModal(true)
+  }
   function openEdit(r: Run) {
-    setEditRun(r); setRunMiles(String(r.miles)); setRunDate(r.date)
-    setRunPace(r.pace||''); setRunHr(r.hr?String(r.hr):'')
+    setEditRun(r); setRunShoeId(r.shoe_id); setRunMiles(String(r.miles)); setRunDate(r.date)
+    setRunPace(r.pace||''); setRunHr(r.hr?String(r.hr):''); setRunComfort(r.comfort||7.5)
     setRunTemp(r.temp?String(r.temp):''); setRunHumidity(r.humidity?String(r.humidity):'')
     setRunFinish(r.finish_time||''); setRunRaceName(r.race_name||''); setRunRaceType(r.race_type||'marathon')
     if (r.finish_time&&r.miles) { const p=derivePaceFromFinish(r.finish_time,r.miles); setPacePrev(p?`→ ${p} / mile`:'') }
@@ -55,6 +67,23 @@ export default function RacesClient({ shoes, races, profile }: Props) {
       finish_time:runFinish||null, race_name:runRaceName.trim()||null, race_type:runRaceType,
     }).eq('id',editRun.id)
     toast('Race updated'); setSaving(false); setEditModal(false); router.refresh()
+  }
+  async function saveNewRace() {
+    const miles = parseFloat(runMiles)
+    if (!miles || miles<=0) return toast('Enter a valid distance','error')
+    if (!runDate) return toast('Pick a date','error')
+    if (!runShoeId) return toast('Select a shoe','error')
+    setSaving(true)
+    const derived = runFinish ? derivePaceFromFinish(runFinish, miles) : null
+    const { data:{ session } } = await supabase.auth.getSession()
+    await supabase.from('runs').insert({
+      user_id: session!.user.id, shoe_id: runShoeId, miles, date: runDate,
+      pace: derived||runPace.trim()||null, hr: runHr?parseInt(runHr):null, comfort: runComfort,
+      temp: runTemp?parseFloat(runTemp):null, humidity: runHumidity?parseFloat(runHumidity):null,
+      finish_time: runFinish||null, is_race: true,
+      race_name: runRaceName.trim()||null, race_type: runRaceType,
+    })
+    toast('Race logged'); setSaving(false); setLogModal(false); router.refresh()
   }
 
   // Podium
@@ -91,7 +120,10 @@ export default function RacesClient({ shoes, races, profile }: Props) {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.title}>RACE<br/>LOG</div>
+      <div className={styles.titleRow}>
+        <div className={styles.title}>RACE<br/>LOG</div>
+        <Btn variant="accent" onClick={openLogRace}>+ Log a Race</Btn>
+      </div>
 
       {/* SUMMARY BAR */}
       <div className={styles.summaryBar}>
@@ -226,9 +258,6 @@ export default function RacesClient({ shoes, races, profile }: Props) {
                       <div className={styles.percentileBadgeLabel}>for your age &amp; gender</div>
                     </div>
                   </div>
-                  <div className={styles.percentileBarTrack}>
-                    <div className={styles.percentileBarFill} style={{width:`${percentile}%`}}/>
-                  </div>
                   <div className={styles.percentileBenchTable}>
                     {([
                       { label: 'Top 5%',  secs: getP95(row) },
@@ -271,7 +300,7 @@ export default function RacesClient({ shoes, races, profile }: Props) {
           <FormGroup><FormLabel>Date</FormLabel><FormInput type="date" value={runDate} onChange={e=>setRunDate(e.target.value)}/></FormGroup>
         </FormRow>
         <FormRow>
-          <FormGroup><FormLabel>Pace (min/mi)</FormLabel><FormInput type="text" placeholder="7:30" value={runPace} onChange={e=>setRunPace(e.target.value)}/></FormGroup>
+          <FormGroup><FormLabel>Pace (min/mi)</FormLabel><FormInput type="text" inputMode="numeric" placeholder="7:30" value={runPace} onChange={e=>setRunPace(formatPaceInput(e.target.value))}/></FormGroup>
           <FormGroup><FormLabel>Heart Rate</FormLabel><FormInput type="number" placeholder="155" value={runHr} onChange={e=>setRunHr(e.target.value)}/></FormGroup>
         </FormRow>
         <FormRow>
@@ -297,6 +326,56 @@ export default function RacesClient({ shoes, races, profile }: Props) {
         <FormActions>
           <Btn variant="ghost" onClick={()=>setEditModal(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={saveEdit} disabled={saving}>{saving?'Saving…':'Save Changes'}</Btn>
+        </FormActions>
+      </Modal>
+
+      {/* LOG A RACE MODAL */}
+      <Modal open={logModal} onClose={()=>setLogModal(false)} title="Log a Race">
+        <FormGroup>
+          <FormLabel>Shoe</FormLabel>
+          <FormSelect value={runShoeId} onChange={e=>setRunShoeId(e.target.value)}>
+            <option value="">Select a shoe...</option>
+            {shoes.map(s=><option key={s.id} value={s.id}>{s.brand} {s.name}</option>)}
+          </FormSelect>
+        </FormGroup>
+        <FormRow>
+          <FormGroup><FormLabel>Race Name</FormLabel><FormInput placeholder="e.g. Chicago Marathon 2026" value={runRaceName} onChange={e=>setRunRaceName(e.target.value)}/></FormGroup>
+          <FormGroup><FormLabel>Date</FormLabel><FormInput type="date" value={runDate} onChange={e=>setRunDate(e.target.value)}/></FormGroup>
+        </FormRow>
+        <FormGroup>
+          <FormLabel>Race Type</FormLabel>
+          <FormSelect value={runRaceType} onChange={e=>{
+            const v = e.target.value; setRunRaceType(v)
+            const dist = v==='marathon'?26.2:v==='half'?13.1:v==='ten_k'?6.2:v==='five_k'?3.1:parseFloat(runMiles)||0
+            setRunMiles(String(dist))
+          }}>
+            <option value="marathon">Marathon</option><option value="half">Half Marathon</option>
+            <option value="ten_k">10K</option><option value="five_k">5K</option><option value="other">Other</option>
+          </FormSelect>
+        </FormGroup>
+        <FormRow>
+          <FormGroup><FormLabel>Distance (miles)</FormLabel><FormInput type="number" step="0.01" value={runMiles} onChange={e=>{setRunMiles(e.target.value);if(runFinish){const p=derivePaceFromFinish(runFinish,parseFloat(e.target.value));setPacePrev(p?`→ ${p} / mile`:'')}}}/></FormGroup>
+          <FormGroup>
+            <FormLabel>Finish Time <span style={{color:'var(--text-dim)',fontSize:9}}>H:MM:SS</span></FormLabel>
+            <FormInput type="text" placeholder="2:58:30" value={runFinish} onChange={e=>{setRunFinish(e.target.value);const p=derivePaceFromFinish(e.target.value,parseFloat(runMiles));setPacePrev(p?`→ ${p} / mile`:'')}}/>
+          </FormGroup>
+        </FormRow>
+        {pacePrev&&<div style={{fontFamily:'DM Mono,monospace',fontSize:11,color:'var(--accent)',marginTop:-8,marginBottom:8}}>{pacePrev}</div>}
+        <FormRow>
+          <FormGroup><FormLabel>Pace (min/mi)</FormLabel><FormInput type="text" inputMode="numeric" placeholder="7:30" value={runPace} onChange={e=>setRunPace(formatPaceInput(e.target.value))}/></FormGroup>
+          <FormGroup><FormLabel>Heart Rate (bpm)</FormLabel><FormInput type="number" placeholder="155" value={runHr} onChange={e=>setRunHr(e.target.value)}/></FormGroup>
+        </FormRow>
+        <FormRow>
+          <FormGroup><FormLabel>Temp (°F)</FormLabel><FormInput type="number" value={runTemp} onChange={e=>setRunTemp(e.target.value)}/></FormGroup>
+          <FormGroup><FormLabel>Humidity (%)</FormLabel><FormInput type="number" value={runHumidity} onChange={e=>setRunHumidity(e.target.value)}/></FormGroup>
+        </FormRow>
+        <FormGroup>
+          <FormLabel>Shoe Comfort: <span style={{color:'var(--accent)'}}>{runComfort}</span> / 10</FormLabel>
+          <input type="range" min="0.5" max="10" step="0.5" value={runComfort} onChange={e=>setRunComfort(parseFloat(e.target.value))} className={styles.slider}/>
+        </FormGroup>
+        <FormActions>
+          <Btn variant="ghost" onClick={()=>setLogModal(false)}>Cancel</Btn>
+          <Btn variant="primary" onClick={saveNewRace} disabled={saving}>{saving?'Saving…':'Log Race'}</Btn>
         </FormActions>
       </Modal>
     </div>
