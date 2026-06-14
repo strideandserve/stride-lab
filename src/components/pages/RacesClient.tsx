@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run } from '@/lib/types'
 import { paceToSeconds, paceToFinishTime, raceTypeLabel, derivePaceFromFinish, finishTimeToSeconds, secondsToPace, CAT_COLORS, getRaceLogoUrl } from '@/lib/utils'
-import { raceTypeToDistance, getPercentileRow, estimatePercentile, percentileToTopPct, DISTANCE_LABELS, getAgeGroup, type Gender } from '@/lib/percentiles'
+import { raceTypeToDistance, getPercentileRow, estimatePercentile, percentileToTopPct, getP95, DISTANCE_LABELS, getAgeGroup, type Gender } from '@/lib/percentiles'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
 import { toast } from '@/components/Toast'
@@ -231,16 +231,17 @@ export default function RacesClient({ shoes, races, profile }: Props) {
                   </div>
                   <div className={styles.percentileBenchTable}>
                     {([
+                      { label: 'Top 5%',  secs: getP95(row) },
                       { label: 'Top 10%', secs: row.p90 },
                       { label: 'Top 25%', secs: row.p75 },
                       { label: 'Median',  secs: row.p50 },
                       { label: 'Top 75%', secs: row.p25 },
                       { label: 'Back of Pack', secs: row.p10 },
                     ] as const).map((b) => {
-                      const benches = [row.p90,row.p75,row.p50,row.p25,row.p10]
+                      const benches = [getP95(row),row.p90,row.p75,row.p50,row.p25,row.p10]
                       let closestIdx = 0, closestDiff = Infinity
                       benches.forEach((s,idx)=>{ const d=Math.abs(s-timeSecs); if(d<closestDiff){closestDiff=d;closestIdx=idx} })
-                      const labels = ['Top 10%','Top 25%','Median','Top 75%','Back of Pack']
+                      const labels = ['Top 5%','Top 10%','Top 25%','Median','Top 75%','Back of Pack']
                       const isClosest = labels[closestIdx]===b.label
                       const display = (distance==='marathon'||distance==='half')
                         ? new Date(b.secs*1000).toISOString().substring(11,19).replace(/^0/,'')

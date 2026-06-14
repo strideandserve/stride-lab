@@ -170,7 +170,7 @@
 
 .percentileBenchTable {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
 }
 .percentileBenchItem {
@@ -210,7 +210,7 @@
 .percentileYourTime strong { color: var(--text); }
 
 @media (max-width: 600px) {
-  .percentileBenchTable { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .percentileBenchTable { grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .percentileBenchItem { padding: 6px 2px; }
   .percentileBenchLabel { font-size: 7px; }
   .percentileBenchTime { font-size: 9px; }

@@ -476,6 +476,23 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
               {new Date(nextRace.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
               {nextRace.goal_time && <span style={{color:'var(--accent)'}}> · Goal {nextRace.goal_time}</span>}
             </div>
+            <div className={styles.raceTimeline}>
+              <div className={styles.raceTimelinePoint}>
+                <div className={styles.raceTimelineDot}/>
+                <div className={styles.raceTimelinePointLabel}>
+                  <div className={styles.raceTimelinePointTitle}>Today</div>
+                  <div className={styles.raceTimelinePointDate}>{today.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                </div>
+              </div>
+              <div className={styles.raceTimelineLine}/>
+              <div className={styles.raceTimelinePoint}>
+                <div className={`${styles.raceTimelineDot} ${styles.raceTimelineDotEnd}`}/>
+                <div className={styles.raceTimelinePointLabel}>
+                  <div className={styles.raceTimelinePointTitle}>Race Day</div>
+                  <div className={styles.raceTimelinePointDate}>{new Date(nextRace.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : (
           <button className={styles.nextRaceAddBtn} onClick={openAddRace}>+ Add Race</button>

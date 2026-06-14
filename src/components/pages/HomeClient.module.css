@@ -318,3 +318,56 @@
   .nextRaceName { justify-content:flex-start; }
   .nextRaceAddBtn { width:100%; }
 }
+
+/* RACE COUNTDOWN TIMELINE */
+.raceTimeline {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  margin-top: 22px;
+  gap: 8px;
+}
+.raceTimelineLine {
+  flex: 1;
+  height: 2px;
+  background: var(--border);
+  margin-top: 5px;
+  min-width: 24px;
+}
+.raceTimelinePoint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.raceTimelineDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 10px rgba(57,255,106,0.6);
+  flex-shrink: 0;
+}
+.raceTimelineDotEnd {
+  background: var(--text);
+  box-shadow: 0 0 10px rgba(255,255,255,0.3);
+}
+.raceTimelinePointLabel {
+  margin-top: 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+.raceTimelinePointTitle {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.raceTimelinePointDate {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  color: var(--text);
+  margin-top: 2px;
+}

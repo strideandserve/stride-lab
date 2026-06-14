@@ -144,10 +144,17 @@ export function getPercentileRow(distance: RaceDistance, gender: Gender, age: nu
   return PERCENTILE_TABLE[distance][gender][ageGroup]
 }
 
+// Derive an estimated "Top 5%" benchmark by extending the p75->p90 trend
+// half as far again — p90 to p95 covers 5 percentile points vs p75 to p90's 15.
+export function getP95(row: PercentileRow): number {
+  return Math.round(row.p90 + (row.p90 - row.p75) / 3)
+}
+
 // Estimate where a finish time falls (1-99), where higher = faster relative to peers.
 // Interpolates between the 5 benchmark points; extrapolates gently beyond the ends.
 export function estimatePercentile(timeSecs: number, row: PercentileRow): number {
   const points: [number, number][] = [
+    [getP95(row), 95],
     [row.p90, 90],
     [row.p75, 75],
     [row.p50, 50],
