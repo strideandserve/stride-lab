@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run, UpcomingRace, TrainingPlan, PlannedRun } from '@/lib/types'
-import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, RUN_TYPE_LABELS, RUN_TYPE_COLORS, getRaceLogoUrl, getMonday } from '@/lib/utils'
+import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, RUN_TYPE_LABELS, RUN_TYPE_COLORS, getRaceLogoUrl, getMonday, formatTimeInput } from '@/lib/utils'
 import BrandLogo from '@/components/BrandLogo'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
@@ -833,7 +833,7 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
           </FormGroup>
         </FormRow>
         <FormGroup><FormLabel>Location (optional)</FormLabel><FormInput placeholder="e.g. Chicago, IL" value={raceLocation} onChange={e=>setRaceLocation(e.target.value)}/></FormGroup>
-        <FormGroup><FormLabel>Goal Time (optional)</FormLabel><FormInput placeholder="e.g. 2:50:00" value={raceGoal} onChange={e=>setRaceGoal(e.target.value)}/></FormGroup>
+        <FormGroup><FormLabel>Goal Time (optional)</FormLabel><FormInput type="text" inputMode="numeric" placeholder="e.g. 2:50:00" value={raceGoal} onChange={e=>setRaceGoal(formatTimeInput(e.target.value))}/></FormGroup>
         <FormActions>
           <Btn variant="ghost" onClick={()=>setRaceModal(false)}>Cancel</Btn>
           <Btn variant="primary" onClick={saveRace} disabled={savingRace}>{savingRace?'Saving…':editingRace?'Save Changes':'Add Race'}</Btn>

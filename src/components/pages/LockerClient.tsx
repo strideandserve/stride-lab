@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run, Category } from '@/lib/types'
-import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, derivePaceFromFinish, formatPaceInput } from '@/lib/utils'
+import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, derivePaceFromFinish, formatPaceInput, formatTimeInput } from '@/lib/utils'
 import BrandLogo from '@/components/BrandLogo'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
@@ -386,7 +386,7 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
                 </FormGroup>
                 <FormGroup>
                   <FormLabel>Finish Time <span style={{color:'var(--text-dim)',fontSize:9}}>H:MM:SS — auto-calculates pace</span></FormLabel>
-                  <FormInput type="text" placeholder="2:58:30" value={runFinishTime} onChange={e=>onFinishTimeChange(e.target.value)}/>
+                  <FormInput type="text" inputMode="numeric" placeholder="2:58:30" value={runFinishTime} onChange={e=>onFinishTimeChange(formatTimeInput(e.target.value))}/>
                   {pacePrev && <div className={styles.pacePrev}>{pacePrev}</div>}
                 </FormGroup>
               </div>

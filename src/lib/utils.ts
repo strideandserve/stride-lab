@@ -23,6 +23,23 @@ export function formatPaceInput(value: string): string {
   return `${digits.slice(0, 2)}:${digits.slice(2)}`
 }
 
+// Auto-formats raw finish/goal time input as the user types digits, inserting ":" automatically.
+// Builds from the right: last 2 digits = seconds, next 2 = minutes, remaining = hours.
+// e.g. "730" -> "7:30", "2730" -> "27:30", "25830" -> "2:58:30"
+export function formatTimeInput(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 6)
+  if (digits.length <= 2) return digits
+  if (digits.length <= 4) {
+    const secs = digits.slice(-2)
+    const mins = digits.slice(0, -2)
+    return `${mins}:${secs}`
+  }
+  const secs = digits.slice(-2)
+  const mins = digits.slice(-4, -2)
+  const hours = digits.slice(0, -4)
+  return `${hours}:${mins}:${secs}`
+}
+
 export function paceToFinishTime(pace: string | null, distanceMi: number): string | null {
   const secs = paceToSeconds(pace)
   if (!secs || !distanceMi) return null

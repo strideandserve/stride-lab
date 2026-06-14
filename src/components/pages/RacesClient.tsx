@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run } from '@/lib/types'
-import { paceToSeconds, paceToFinishTime, raceTypeLabel, derivePaceFromFinish, finishTimeToSeconds, secondsToPace, formatPaceInput, CAT_COLORS, getRaceLogoUrl } from '@/lib/utils'
+import { paceToSeconds, paceToFinishTime, raceTypeLabel, derivePaceFromFinish, finishTimeToSeconds, secondsToPace, formatPaceInput, formatTimeInput, CAT_COLORS, getRaceLogoUrl } from '@/lib/utils'
 import { raceTypeToDistance, getPercentileRow, estimatePercentile, percentileToTopPct, getP95, DISTANCE_LABELS, getAgeGroup, type Gender } from '@/lib/percentiles'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
@@ -320,7 +320,7 @@ export default function RacesClient({ shoes, races, profile }: Props) {
         </FormGroup>
         <FormGroup>
           <FormLabel>Finish Time <span style={{color:'var(--text-dim)',fontSize:9}}>H:MM:SS</span></FormLabel>
-          <FormInput type="text" placeholder="2:58:30" value={runFinish} onChange={e=>{setRunFinish(e.target.value);const p=derivePaceFromFinish(e.target.value,parseFloat(runMiles));setPacePrev(p?`→ ${p} / mile`:'')} }/>
+          <FormInput type="text" inputMode="numeric" placeholder="2:58:30" value={runFinish} onChange={e=>{const v=formatTimeInput(e.target.value);setRunFinish(v);const p=derivePaceFromFinish(v,parseFloat(runMiles));setPacePrev(p?`→ ${p} / mile`:'')} }/>
           {pacePrev&&<div style={{fontFamily:'DM Mono,monospace',fontSize:11,color:'var(--accent)',marginTop:6}}>{pacePrev}</div>}
         </FormGroup>
         <FormActions>
@@ -357,7 +357,7 @@ export default function RacesClient({ shoes, races, profile }: Props) {
           <FormGroup><FormLabel>Distance (miles)</FormLabel><FormInput type="number" step="0.01" value={runMiles} onChange={e=>{setRunMiles(e.target.value);if(runFinish){const p=derivePaceFromFinish(runFinish,parseFloat(e.target.value));setPacePrev(p?`→ ${p} / mile`:'')}}}/></FormGroup>
           <FormGroup>
             <FormLabel>Finish Time <span style={{color:'var(--text-dim)',fontSize:9}}>H:MM:SS</span></FormLabel>
-            <FormInput type="text" placeholder="2:58:30" value={runFinish} onChange={e=>{setRunFinish(e.target.value);const p=derivePaceFromFinish(e.target.value,parseFloat(runMiles));setPacePrev(p?`→ ${p} / mile`:'')}}/>
+            <FormInput type="text" inputMode="numeric" placeholder="2:58:30" value={runFinish} onChange={e=>{const v=formatTimeInput(e.target.value);setRunFinish(v);const p=derivePaceFromFinish(v,parseFloat(runMiles));setPacePrev(p?`→ ${p} / mile`:'')}}/>
           </FormGroup>
         </FormRow>
         {pacePrev&&<div style={{fontFamily:'DM Mono,monospace',fontSize:11,color:'var(--accent)',marginTop:-8,marginBottom:8}}>{pacePrev}</div>}
