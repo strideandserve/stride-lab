@@ -121,6 +121,7 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
   // ── SPENDING CALCULATIONS
   const now        = new Date()
   const today      = new Date(); today.setHours(0,0,0,0)
+  const dayName    = today.toLocaleDateString('en-US', { weekday: 'long' })
   const yearStart  = new Date(now.getFullYear(), 0, 1)
   const yearEnd    = new Date(now.getFullYear(), 11, 31)
   const daysInYear = 365
@@ -452,22 +453,21 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
       {/* GREETING */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <div className={styles.greeting}>HEY,<br/><span>{userName.toUpperCase()}</span>.</div>
+          <div className={styles.greeting}>HAPPY {dayName.toUpperCase()},<br/><span>{userName.toUpperCase()}</span>.</div>
+          <div className={styles.tagline}>Let&apos;s have a run.</div>
           <div className={styles.sub}>
             {runs.length === 0 ? "NO RUNS LOGGED YET — LET'S GO." : `${runs.length} RUN${runs.length!==1?'S':''} LOGGED · ${totalMiles.toFixed(1)} TOTAL MILES`}
           </div>
         </div>
         {nextRace ? (
           <div className={styles.nextRaceCard} onClick={()=>openEditRace(nextRace)}>
+            {getRaceLogoUrl(nextRace.name) && (
+              <img src={getRaceLogoUrl(nextRace.name)!} alt={nextRace.name} className={styles.nextRaceLogo} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
+            )}
             <div className={styles.nextRaceLabel}>NEXT RACE</div>
             <div className={styles.nextRaceDays}>{daysUntil(nextRace.date)}</div>
             <div className={styles.nextRaceDaysLabel}>DAYS TO GO</div>
-            <div className={styles.nextRaceName}>
-              {getRaceLogoUrl(nextRace.name) && (
-                <img src={getRaceLogoUrl(nextRace.name)!} alt={nextRace.name} className={styles.nextRaceLogo} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
-              )}
-              {nextRace.name}
-            </div>
+            <div className={styles.nextRaceName}>{nextRace.name}</div>
             <div className={styles.nextRaceDate}>
               {new Date(nextRace.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
               {nextRace.goal_time && <span style={{color:'var(--accent)'}}> · Goal {nextRace.goal_time}</span>}
