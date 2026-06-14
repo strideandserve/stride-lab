@@ -14,6 +14,15 @@ export function secondsToPace(secs: number | null): string {
   return `${m}:${s}`
 }
 
+// Auto-formats raw pace input as the user types digits, inserting the ":" automatically.
+// e.g. "7" -> "7", "73" -> "73", "730" -> "7:30", "1230" -> "12:30"
+export function formatPaceInput(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 4)
+  if (digits.length <= 2) return digits
+  if (digits.length === 3) return `${digits.slice(0, 1)}:${digits.slice(1)}`
+  return `${digits.slice(0, 2)}:${digits.slice(2)}`
+}
+
 export function paceToFinishTime(pace: string | null, distanceMi: number): string | null {
   const secs = paceToSeconds(pace)
   if (!secs || !distanceMi) return null
@@ -130,11 +139,11 @@ export function computeCompositeScore(runs: Run[], plannedRuns: PlannedRunLike[]
     // Condition-adjusted pace score (5:00 - 12:00 /mi range)
     const paceScore = Math.max(0, Math.min(100, ((720 - adjSecs) / (720 - 300)) * 100))
 
-    // Cardiac efficiency: ratio of adjusted pace seconds to heart rate.
-    // Lower ratio (faster pace per beat) = better. Normalize 300 (best) - 900 (worst).
+    // Cardiac efficiency: blends pace with heart rate control. A run that's both
+    // fast AND keeps HR in check scores higher than a fast run at a maxed-out HR.
     const hr = r.hr ?? 160
-    const efficiencyRatio = adjSecs / hr * 60 // scale so typical ratios land ~3-9
-    const efficiencyScore = Math.max(0, Math.min(100, ((9 - efficiencyRatio) / (9 - 3)) * 100))
+    const hrScore = Math.max(0, Math.min(100, ((200 - hr) / (200 - 120)) * 100))
+    const efficiencyScore = paceScore * 0.5 + hrScore * 0.5
 
     // Comfort score
     const comfortScore = ((r.comfort ?? 5) / 10) * 100

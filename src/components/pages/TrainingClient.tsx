@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { TrainingPlan, PlannedRun, Shoe, Run, RunType } from '@/lib/types'
-import { RUN_TYPE_LABELS, RUN_TYPE_COLORS, DAY_LABELS, catLabel, CAT_COLORS, paceToSeconds, getMonday } from '@/lib/utils'
+import { RUN_TYPE_LABELS, RUN_TYPE_COLORS, DAY_LABELS, catLabel, CAT_COLORS, paceToSeconds, getMonday, formatPaceInput } from '@/lib/utils'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
 import { toast } from '@/components/Toast'
@@ -59,6 +59,9 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   const [logPace, setLogPace]     = useState('')
   const [logHr, setLogHr]         = useState('')
   const [logComfort, setLogComfort] = useState(7.5)
+  const [logKneePain, setLogKneePain] = useState('')
+  const [logFootPain, setLogFootPain] = useState('')
+  const [logShinPain, setLogShinPain] = useState('')
   const [logNotes, setLogNotes]   = useState('')
   const [savingLog, setSavingLog] = useState(false)
 
@@ -176,7 +179,9 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   // ── LOG COMPLETED RUN
   function openLogRun(pr: PlannedRun) {
     setLogPR(pr); setLogMiles(String(pr.planned_miles)); setLogPace('')
-    setLogHr(''); setLogComfort(7.5); setLogNotes(''); setLogModal(true)
+    setLogHr(''); setLogComfort(7.5)
+    setLogKneePain(''); setLogFootPain(''); setLogShinPain('')
+    setLogNotes(''); setLogModal(true)
   }
   async function saveLoggedRun() {
     const mi = parseFloat(logMiles)
@@ -187,7 +192,11 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
     const { data: newRun } = await supabase.from('runs').insert({
       user_id: session!.user.id, shoe_id: logPR.shoe_id,
       miles: mi, date: logPR.date, pace: logPace.trim()||null,
-      hr: logHr ? parseInt(logHr) : null, comfort: logComfort, notes: logNotes.trim()||null,
+      hr: logHr ? parseInt(logHr) : null, comfort: logComfort,
+      knee_pain: logKneePain?parseFloat(logKneePain):null,
+      foot_pain: logFootPain?parseFloat(logFootPain):null,
+      shin_pain: logShinPain?parseFloat(logShinPain):null,
+      notes: logNotes.trim()||null,
     }).select('id').single()
     if (newRun) {
       await supabase.from('planned_runs').update({ logged_run_id: newRun.id }).eq('id', logPR.id)
@@ -484,7 +493,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
         </FormGroup>
         <FormRow>
           <FormGroup><FormLabel>Planned Miles</FormLabel><FormInput type="number" step="0.1" placeholder="6.0" value={prMiles} onChange={e=>setPrMiles(e.target.value)}/></FormGroup>
-          <FormGroup><FormLabel>Target Pace (min/mi)</FormLabel><FormInput type="text" placeholder="7:30" value={prTargetPace} onChange={e=>setPrTargetPace(e.target.value)}/></FormGroup>
+          <FormGroup><FormLabel>Target Pace (min/mi)</FormLabel><FormInput type="text" inputMode="numeric" placeholder="7:30" value={prTargetPace} onChange={e=>setPrTargetPace(formatPaceInput(e.target.value))}/></FormGroup>
         </FormRow>
         <FormGroup>
           <FormLabel>Shoe</FormLabel>
@@ -510,13 +519,21 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
         )}
         <FormRow>
           <FormGroup><FormLabel>Actual Miles</FormLabel><FormInput type="number" step="0.01" value={logMiles} onChange={e=>setLogMiles(e.target.value)}/></FormGroup>
-          <FormGroup><FormLabel>Avg Pace (min/mi)</FormLabel><FormInput type="text" placeholder="7:30" value={logPace} onChange={e=>setLogPace(e.target.value)}/></FormGroup>
+          <FormGroup><FormLabel>Avg Pace (min/mi)</FormLabel><FormInput type="text" inputMode="numeric" placeholder="7:30" value={logPace} onChange={e=>setLogPace(formatPaceInput(e.target.value))}/></FormGroup>
         </FormRow>
         <FormGroup><FormLabel>Heart Rate (bpm)</FormLabel><FormInput type="number" placeholder="145" value={logHr} onChange={e=>setLogHr(e.target.value)}/></FormGroup>
         <FormGroup>
           <FormLabel>Shoe Comfort: <span style={{color:'var(--accent)'}}>{logComfort}</span> / 10</FormLabel>
           <input type="range" min="0.5" max="10" step="0.5" value={logComfort} onChange={e=>setLogComfort(parseFloat(e.target.value))} className={styles.slider}/>
         </FormGroup>
+        <div className={styles.painSection}>
+          <div className={styles.painHeader}>How did your body feel? <span>(optional)</span></div>
+          <div className={styles.painGrid}>
+            <FormGroup><FormLabel>Knee Pain (0-10)</FormLabel><FormInput type="number" min="0" max="10" step="1" placeholder="—" value={logKneePain} onChange={e=>setLogKneePain(e.target.value)}/></FormGroup>
+            <FormGroup><FormLabel>Foot Pain (0-10)</FormLabel><FormInput type="number" min="0" max="10" step="1" placeholder="—" value={logFootPain} onChange={e=>setLogFootPain(e.target.value)}/></FormGroup>
+            <FormGroup><FormLabel>Shin Pain (0-10)</FormLabel><FormInput type="number" min="0" max="10" step="1" placeholder="—" value={logShinPain} onChange={e=>setLogShinPain(e.target.value)}/></FormGroup>
+          </div>
+        </div>
         <FormGroup><FormLabel>Notes (optional)</FormLabel><FormInput placeholder="How did it feel?" value={logNotes} onChange={e=>setLogNotes(e.target.value)}/></FormGroup>
         <FormActions>
           <Btn variant="ghost" onClick={()=>setLogModal(false)}>Cancel</Btn>

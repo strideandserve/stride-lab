@@ -71,3 +71,22 @@
   .grid { grid-template-columns:1fr; }
   .runRow { grid-template-columns:1fr 1fr; }
 }
+
+.painSection { margin-top: 4px; }
+.painHeader {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.painHeader span { color: var(--text-dim); text-transform: none; letter-spacing: 0; }
+.painGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .painGrid { grid-template-columns: 1fr; gap: 8px; }
+}

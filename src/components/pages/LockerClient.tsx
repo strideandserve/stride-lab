@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run, Category } from '@/lib/types'
-import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, derivePaceFromFinish } from '@/lib/utils'
+import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, derivePaceFromFinish, formatPaceInput } from '@/lib/utils'
 import BrandLogo from '@/components/BrandLogo'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
@@ -47,6 +47,9 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
   const [runHumidity, setRunHumidity] = useState('')
   const [runLocation, setRunLocation] = useState('')
   const [runComfort, setRunComfort] = useState(7.5)
+  const [runKneePain, setRunKneePain] = useState('')
+  const [runFootPain, setRunFootPain] = useState('')
+  const [runShinPain, setRunShinPain] = useState('')
   const [runNotes, setRunNotes]     = useState('')
   const [runIsRace, setRunIsRace]   = useState(false)
   const [runRaceName, setRunRaceName] = useState('')
@@ -100,7 +103,8 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
   function openLogRun(shoe: Shoe) {
     setEditingRun(null); setRunShoe(shoe); setRunMiles(''); setRunDate(new Date().toISOString().split('T')[0])
     setRunPace(''); setRunHr(''); setRunElev(''); setRunTemp(''); setRunHumidity('')
-    setRunLocation(''); setRunComfort(7.5); setRunNotes(''); setRunIsRace(false)
+    setRunLocation(''); setRunComfort(7.5); setRunKneePain(''); setRunFootPain(''); setRunShinPain('')
+    setRunNotes(''); setRunIsRace(false)
     setRunRaceName(''); setRunRaceType('marathon'); setRunFinishTime(''); setPacePrev('')
     setRunModal(true)
   }
@@ -110,7 +114,11 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
     setRunDate(run.date); setRunPace(run.pace||''); setRunHr(run.hr?String(run.hr):'')
     setRunElev(run.elevation?String(run.elevation):''); setRunTemp(run.temp?String(run.temp):'')
     setRunHumidity(run.humidity?String(run.humidity):''); setRunLocation(run.location||'')
-    setRunComfort(run.comfort||7.5); setRunNotes(run.notes||''); setRunIsRace(run.is_race||false)
+    setRunComfort(run.comfort||7.5)
+    setRunKneePain(run.knee_pain!=null?String(run.knee_pain):'')
+    setRunFootPain(run.foot_pain!=null?String(run.foot_pain):'')
+    setRunShinPain(run.shin_pain!=null?String(run.shin_pain):'')
+    setRunNotes(run.notes||''); setRunIsRace(run.is_race||false)
     setRunRaceName(run.race_name||''); setRunRaceType(run.race_type||'marathon')
     setRunFinishTime(run.finish_time||'')
     if (run.finish_time && run.miles) {
@@ -139,6 +147,9 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
       pace: finalPace, hr: runHr?parseInt(runHr):null, comfort: runComfort,
       elevation: runElev?parseFloat(runElev):null, temp: runTemp?parseFloat(runTemp):null,
       humidity: runHumidity?parseFloat(runHumidity):null, location: runLocation.trim()||null,
+      knee_pain: runKneePain?parseFloat(runKneePain):null,
+      foot_pain: runFootPain?parseFloat(runFootPain):null,
+      shin_pain: runShinPain?parseFloat(runShinPain):null,
       notes: runNotes.trim()||null, finish_time: runFinishTime||null,
       is_race: runIsRace, race_name: runIsRace?runRaceName.trim()||null:null,
       race_type: runIsRace?runRaceType:null,
@@ -239,12 +250,15 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
                       <button className={styles.runDelBtn} onClick={()=>deleteRun(r.id)}>✕</button>
                     </span>
                   </div>
-                  {r.elevation!=null||r.temp!=null ? (
+                  {r.elevation!=null||r.temp!=null||r.knee_pain!=null||r.foot_pain!=null||r.shin_pain!=null ? (
                     <div className={styles.runExtra}>
                       {r.elevation!=null&&<span>↑{r.elevation}ft</span>}
                       {r.temp!=null&&<span>{r.temp}°F</span>}
                       {r.humidity!=null&&<span>{r.humidity}%</span>}
                       {r.location&&<span>📍{r.location}</span>}
+                      {r.knee_pain!=null&&<span style={{color: r.knee_pain>0?'var(--red)':'var(--text-dim)'}}>🦵 Knee {r.knee_pain}/10</span>}
+                      {r.foot_pain!=null&&<span style={{color: r.foot_pain>0?'var(--red)':'var(--text-dim)'}}>🦶 Foot {r.foot_pain}/10</span>}
+                      {r.shin_pain!=null&&<span style={{color: r.shin_pain>0?'var(--red)':'var(--text-dim)'}}>🩹 Shin {r.shin_pain}/10</span>}
                     </div>
                   ):null}
                   {r.is_race&&<div className={styles.raceBadge}>🏁 {r.race_name||'Race'} · {raceTypeLabel(r.race_type)}</div>}
@@ -327,7 +341,7 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
           <FormGroup><FormLabel>Date</FormLabel><FormInput type="date" value={runDate} onChange={e=>setRunDate(e.target.value)}/></FormGroup>
         </FormRow>
         <FormRow>
-          <FormGroup><FormLabel>Avg Pace (min/mi)</FormLabel><FormInput type="text" placeholder="7:30" value={runPace} onChange={e=>setRunPace(e.target.value)}/></FormGroup>
+          <FormGroup><FormLabel>Avg Pace (min/mi)</FormLabel><FormInput type="text" inputMode="numeric" placeholder="7:30" value={runPace} onChange={e=>setRunPace(formatPaceInput(e.target.value))}/></FormGroup>
           <FormGroup><FormLabel>Heart Rate (bpm)</FormLabel><FormInput type="number" placeholder="155" value={runHr} onChange={e=>setRunHr(e.target.value)}/></FormGroup>
         </FormRow>
         <FormRow>
@@ -342,6 +356,16 @@ export default function LockerClient({ shoes: initShoes, runs: initRuns }: Props
           <FormLabel>Shoe Comfort: <span style={{color:'var(--accent)'}}>{runComfort}</span> / 10</FormLabel>
           <input type="range" min="0.5" max="10" step="0.5" value={runComfort} onChange={e=>setRunComfort(parseFloat(e.target.value))} className={styles.slider}/>
         </FormGroup>
+
+        {/* OPTIONAL PAIN TRACKING */}
+        <div className={styles.painSection}>
+          <div className={styles.painHeader}>How did your body feel? <span>(optional)</span></div>
+          <div className={styles.painGrid}>
+            <FormGroup><FormLabel>Knee Pain (0-10)</FormLabel><FormInput type="number" min="0" max="10" step="1" placeholder="—" value={runKneePain} onChange={e=>setRunKneePain(e.target.value)}/></FormGroup>
+            <FormGroup><FormLabel>Foot Pain (0-10)</FormLabel><FormInput type="number" min="0" max="10" step="1" placeholder="—" value={runFootPain} onChange={e=>setRunFootPain(e.target.value)}/></FormGroup>
+            <FormGroup><FormLabel>Shin Pain (0-10)</FormLabel><FormInput type="number" min="0" max="10" step="1" placeholder="—" value={runShinPain} onChange={e=>setRunShinPain(e.target.value)}/></FormGroup>
+          </div>
+        </div>
         {runShoe?.category==='race' && (
           <div className={styles.raceSection}>
             <div className={`${styles.raceCheckRow} ${runIsRace?styles.raceChecked:''}`} onClick={()=>setRunIsRace(!runIsRace)}>

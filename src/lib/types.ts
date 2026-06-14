@@ -81,6 +81,9 @@ export interface Run {
   is_race: boolean
   race_name: string | null
   race_type: RaceType | null
+  knee_pain: number | null
+  foot_pain: number | null
+  shin_pain: number | null
   created_at: string
 }
 

@@ -600,8 +600,8 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
             <div className={styles.methodologyItem}>
               <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>Cardiac Efficiency</div>
               <div className={styles.methodologyDesc}>
-                The ratio of your adjusted pace to heart rate — how much speed you're getting
-                per heartbeat. A more economical effort scores higher than just raw HR.
+                A blend of your adjusted pace and heart rate control — a run that's both fast
+                and keeps your heart rate in check scores higher than a fast run at max effort.
               </div>
             </div>
             <div className={styles.methodologyItem}>
