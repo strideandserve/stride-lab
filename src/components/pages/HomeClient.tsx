@@ -136,6 +136,11 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
     speed: shoesThisYear.filter(s=>s.category==='speed').reduce((a,s)=>a+(s.price||0),0),
     race:  shoesThisYear.filter(s=>s.category==='race').reduce((a,s)=>a+(s.price||0),0),
   }
+  const countByCategory = {
+    daily: shoesThisYear.filter(s=>s.category==='daily').length,
+    speed: shoesThisYear.filter(s=>s.category==='speed').length,
+    race:  shoesThisYear.filter(s=>s.category==='race').length,
+  }
 
   // Average daily miles per category this year
   const runsThisYear = runs.filter(r => r.date && new Date(r.date).getFullYear() === now.getFullYear())
@@ -149,21 +154,24 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
   // Rather than prorating a fraction of a shoe's price (which produces unrealistic
   // numbers like "$84 toward a daily trainer"), round up to the next whole shoe —
   // if you're going to wear one out, you'll buy a full replacement at the going rate.
-  function projectSpend(cat: string) {
+  function projectSpend(cat: string): { total: number; count: number } {
     const catShoes     = shoes.filter(s=>s.category===cat)
-    if (!catShoes.length) return 0
+    if (!catShoes.length) return { total: 0, count: 0 }
     const avgMax       = catShoes.reduce((a,s)=>a+s.max_miles,0) / catShoes.length
     const pricedShoes  = catShoes.filter(s=>s.price)
     const avgPrice     = pricedShoes.length ? pricedShoes.reduce((a,s)=>a+(s.price||0),0) / pricedShoes.length : 0
-    if (!avgPrice) return 0
+    if (!avgPrice) return { total: 0, count: 0 }
     const milesLeft    = avgDailyMilesByCat(cat) * daysLeft
     const shoesNeeded  = Math.ceil(milesLeft / avgMax)
-    return shoesNeeded * avgPrice
+    return { total: shoesNeeded * avgPrice, count: shoesNeeded }
   }
 
-  const projDaily = projectSpend('daily')
-  const projSpeed = projectSpend('speed')
-  const projRace  = projectSpend('race')
+  const projDailyData = projectSpend('daily')
+  const projSpeedData = projectSpend('speed')
+  const projRaceData  = projectSpend('race')
+  const projDaily = projDailyData.total
+  const projSpeed = projSpeedData.total
+  const projRace  = projRaceData.total
   const totalProj = projDaily + projSpeed + projRace
 
   // ── TRAINING PLAN WIDGET
@@ -779,7 +787,7 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
             <div className={styles.spendingBreakdown}>
               {(['daily','speed','race'] as const).map(cat => spentByCategory[cat] > 0 && (
                 <div key={cat} className={styles.spendingBreakdownItem}>
-                  <span style={{color:CAT_COLORS[cat]}}>{catLabel(cat)}</span>
+                  <span style={{color:CAT_COLORS[cat]}}>{catLabel(cat)} ({countByCategory[cat]})</span>
                   <span>${Math.round(spentByCategory[cat]).toLocaleString()}</span>
                 </div>
               ))}
@@ -794,9 +802,9 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
             <div className={styles.spendingBlockLabel}>Projected Rest of Year</div>
             <div className={styles.spendingBig} style={{color:'var(--warn)'}}>${Math.round(totalProj).toLocaleString()}</div>
             <div className={styles.spendingBreakdown}>
-              {projDaily > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.daily}}>Daily</span><span>${Math.round(projDaily).toLocaleString()}</span></div>}
-              {projSpeed > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.speed}}>Speed</span><span>${Math.round(projSpeed).toLocaleString()}</span></div>}
-              {projRace  > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.race}}>Race</span><span>${Math.round(projRace).toLocaleString()}</span></div>}
+              {projDaily > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.daily}}>Daily ({projDailyData.count})</span><span>${Math.round(projDaily).toLocaleString()}</span></div>}
+              {projSpeed > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.speed}}>Speed ({projSpeedData.count})</span><span>${Math.round(projSpeed).toLocaleString()}</span></div>}
+              {projRace  > 0 && <div className={styles.spendingBreakdownItem}><span style={{color:CAT_COLORS.race}}>Race ({projRaceData.count})</span><span>${Math.round(projRace).toLocaleString()}</span></div>}
               {totalProj === 0 && <div style={{color:'var(--text-dim)',fontSize:11,fontStyle:'italic'}}>Log more runs to generate projection</div>}
             </div>
           </div>
