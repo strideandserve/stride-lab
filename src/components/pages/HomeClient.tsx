@@ -145,16 +145,20 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
     return mi / Math.max(dayOfYear, 1)
   }
 
-  // Projection: how many more shoes needed × avg price
+  // Projection: how many MORE WHOLE shoes you'll need to buy this year × avg price per shoe.
+  // Rather than prorating a fraction of a shoe's price (which produces unrealistic
+  // numbers like "$84 toward a daily trainer"), round up to the next whole shoe —
+  // if you're going to wear one out, you'll buy a full replacement at the going rate.
   function projectSpend(cat: string) {
     const catShoes     = shoes.filter(s=>s.category===cat)
     if (!catShoes.length) return 0
     const avgMax       = catShoes.reduce((a,s)=>a+s.max_miles,0) / catShoes.length
-    const avgPrice     = catShoes.filter(s=>s.price).reduce((a,s)=>a+(s.price||0),0) / (catShoes.filter(s=>s.price).length||1)
+    const pricedShoes  = catShoes.filter(s=>s.price)
+    const avgPrice     = pricedShoes.length ? pricedShoes.reduce((a,s)=>a+(s.price||0),0) / pricedShoes.length : 0
     if (!avgPrice) return 0
     const milesLeft    = avgDailyMilesByCat(cat) * daysLeft
-    const shoesNeeded  = milesLeft / avgMax
-    return Math.round(shoesNeeded * avgPrice)
+    const shoesNeeded  = Math.ceil(milesLeft / avgMax)
+    return shoesNeeded * avgPrice
   }
 
   const projDaily = projectSpend('daily')
