@@ -5,7 +5,34 @@ import styles from './MajorsClient.module.css'
 
 interface ProfileLite { birth_year: number | null; gender: 'male' | 'female' | null }
 interface RaceLite { finish_time: string | null; race_type: string | null; race_name: string | null; date: string }
-interface Props { profile: ProfileLite | null; races: RaceLite[] }
+interface UpcomingRace { name: string; date: string }
+interface Props { profile: ProfileLite | null; races: RaceLite[]; upcomingRaces: UpcomingRace[] }
+
+// Each major has a stone color for the gauntlet
+const STONE_COLORS: Record<string, { gem: string; glow: string; label: string }> = {
+  tokyo:   { gem: '#9b5fe0', glow: 'rgba(155,95,224,0.7)',  label: 'Soul'    },
+  boston:  { gem: '#f5a623', glow: 'rgba(245,166,35,0.7)',  label: 'Reality' },
+  london:  { gem: '#47c8ff', glow: 'rgba(71,200,255,0.7)',  label: 'Space'   },
+  sydney:  { gem: '#39ff6a', glow: 'rgba(57,255,106,0.7)',  label: 'Time'    },
+  berlin:  { gem: '#ff4747', glow: 'rgba(255,71,71,0.7)',   label: 'Power'   },
+  chicago: { gem: '#ffd700', glow: 'rgba(255,215,0,0.7)',   label: 'Mind'    },
+  nyc:     { gem: '#ff6b35', glow: 'rgba(255,107,53,0.7)',  label: 'Mind'    },
+}
+
+function nameMatchesMajor(raceName: string | null, majorId: string): boolean {
+  if (!raceName) return false
+  const lower = raceName.toLowerCase()
+  const matchers: Record<string, string[]> = {
+    tokyo:   ['tokyo'],
+    boston:  ['boston'],
+    london:  ['london'],
+    sydney:  ['sydney'],
+    berlin:  ['berlin'],
+    chicago: ['chicago'],
+    nyc:     ['new york', 'nyc', 'new york city'],
+  }
+  return (matchers[majorId] ?? []).some(k => lower.includes(k))
+}
 
 const TODAY = new Date()
 
@@ -23,7 +50,7 @@ function formatDateShort(dateStr: string) {
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default function MajorsClient({ profile, races }: Props) {
+export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
   const [activeTab, setActiveTab] = useState<'overview' | 'qualifying'>('overview')
 
   const age = profile?.birth_year ? TODAY.getFullYear() - profile.birth_year : null
@@ -37,6 +64,21 @@ export default function MajorsClient({ profile, races }: Props) {
       return toSecs(a.finish_time!) - toSecs(b.finish_time!)
     })[0]?.finish_time ?? null
 
+  // Which majors has the user completed?
+  const completedIds = new Set(
+    MAJORS
+      .filter(m => races.some(r => r.race_type === 'marathon' && nameMatchesMajor(r.race_name, m.id)))
+      .map(m => m.id)
+  )
+
+  // Which majors does the user have planned (in upcoming_races)?
+  const plannedIds = new Set(
+    MAJORS
+      .filter(m => upcomingRaces.some(r => nameMatchesMajor(r.name, m.id)))
+      .map(m => m.id)
+  )
+
+  const stonesEarned = completedIds.size
   const upcoming = MAJORS.filter(m => daysUntil(m.raceDate2026) > 0).sort((a,b) => daysUntil(a.raceDate2026) - daysUntil(b.raceDate2026))
   const past     = MAJORS.filter(m => daysUntil(m.raceDate2026) <= 0).sort((a,b) => daysUntil(b.raceDate2026) - daysUntil(a.raceDate2026))
 
@@ -47,6 +89,108 @@ export default function MajorsClient({ profile, races }: Props) {
 
   return (
     <div className={styles.wrap}>
+
+      {/* INFINITY GAUNTLET */}
+      <div className={styles.gauntlet}>
+        <div className={styles.gauntletLeft}>
+          <div className={styles.gauntletTitle}>SIX STAR GAUNTLET</div>
+          <div className={styles.gauntletSub}>
+            {stonesEarned === 0 && 'Complete a World Major to earn your first stone.'}
+            {stonesEarned > 0 && stonesEarned < 7 && `${stonesEarned} of 7 Majors completed`}
+            {stonesEarned === 7 && '⚡ ALL 7 MAJORS COMPLETED — INFINITY ACHIEVED'}
+          </div>
+          <div className={styles.gauntletStones}>
+            {MAJORS.map(major => {
+              const stone = STONE_COLORS[major.id]
+              const completed = completedIds.has(major.id)
+              const planned   = plannedIds.has(major.id)
+              return (
+                <div key={major.id} className={styles.stoneSlot} title={`${major.flag} ${major.name}${completed?' — Completed':planned?' — Planned':''}`}>
+                  <div
+                    className={`${styles.stone} ${completed ? styles.stoneEarned : planned ? styles.stonePlanned : styles.stoneEmpty}`}
+                    style={completed ? {
+                      background: `radial-gradient(circle at 35% 35%, #fff 0%, ${stone.gem} 40%, #000 100%)`,
+                      boxShadow: `0 0 18px ${stone.glow}, 0 0 40px ${stone.glow}`,
+                    } : planned ? {
+                      background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3) 0%, ${stone.gem}55 40%, #00000088 100%)`,
+                      boxShadow: `0 0 6px ${stone.glow}44`,
+                    } : {}}
+                  />
+                  <div className={`${styles.stoneLabel} ${completed?styles.stoneLabelEarned:planned?styles.stoneLabelPlanned:''}`}>
+                    {major.flag}
+                  </div>
+                  {planned && !completed && <div className={styles.stonePendingBadge}>Planned</div>}
+                  {completed && <div className={styles.stoneCompleteBadge}>✓</div>}
+                </div>
+              )
+            })}
+          </div>
+          <div className={styles.gauntletLegend}>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'var(--accent)',boxShadow:'0 0 8px var(--accent)'}}/>Completed</div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'rgba(255,255,255,0.15)',border:'1px dashed rgba(255,255,255,0.3)'}}/>Planned</div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'var(--surface2)',border:'1px solid var(--border)'}}/>Not yet</div>
+          </div>
+        </div>
+        <div className={styles.gauntletFist}>
+          <svg viewBox="0 0 200 280" fill="none" xmlns="http://www.w3.org/2000/svg" className={styles.gauntletSvg}>
+            {/* Gauntlet arm/wrist */}
+            <rect x="60" y="200" width="80" height="60" rx="8" fill="#b8860b" stroke="#ffd700" strokeWidth="1.5"/>
+            <rect x="65" y="205" width="70" height="50" rx="6" fill="#daa520"/>
+            {/* Palm */}
+            <rect x="50" y="140" width="100" height="70" rx="10" fill="#b8860b" stroke="#ffd700" strokeWidth="1.5"/>
+            <rect x="56" y="146" width="88" height="58" rx="7" fill="#daa520"/>
+            {/* Thumb */}
+            <rect x="20" y="155" width="38" height="28" rx="10" fill="#b8860b" stroke="#ffd700" strokeWidth="1.5"/>
+            <rect x="25" y="160" width="28" height="18" rx="7" fill="#daa520"/>
+            {/* Fingers */}
+            {[0,1,2,3].map(i => (
+              <g key={i}>
+                <rect x={52 + i*26} y={75 + (i===0||i===3?15:0)} width="22" height="72" rx="10" fill="#b8860b" stroke="#ffd700" strokeWidth="1.5"/>
+                <rect x={57 + i*26} y={80 + (i===0||i===3?15:0)} width="12" height="62" rx="7" fill="#daa520"/>
+              </g>
+            ))}
+            {/* Knuckle stones — 4 across the knuckles */}
+            {[0,1,2,3].map(i => {
+              const major = MAJORS[i+1] // boston, london, sydney, berlin
+              const stone = STONE_COLORS[major.id]
+              const done  = completedIds.has(major.id)
+              const plan  = plannedIds.has(major.id)
+              return (
+                <g key={i}>
+                  <ellipse cx={63 + i*26} cy={148} rx="9" ry="7" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1"/>
+                  {done && <ellipse cx={61 + i*26} cy={146} rx="4" ry="3" fill="rgba(255,255,255,0.5)"/>}
+                </g>
+              )
+            })}
+            {/* Back of hand center stone */}
+            {(() => {
+              const major = MAJORS[5] // chicago
+              const stone = STONE_COLORS[major.id]
+              const done  = completedIds.has(major.id)
+              const plan  = plannedIds.has(major.id)
+              return (
+                <g>
+                  <ellipse cx="100" cy="172" rx="16" ry="12" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1.5"/>
+                  {done && <ellipse cx="95" cy="168" rx="7" ry="5" fill="rgba(255,255,255,0.5)"/>}
+                </g>
+              )
+            })()}
+            {/* Wrist stones — tokyo + nyc */}
+            {[MAJORS[0], MAJORS[6]].map((major, i) => {
+              const stone = STONE_COLORS[major.id]
+              const done  = completedIds.has(major.id)
+              const plan  = plannedIds.has(major.id)
+              return (
+                <g key={i}>
+                  <ellipse cx={72 + i*56} cy={210} rx="12" ry="9" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1.2"/>
+                  {done && <ellipse cx={69 + i*56} cy={207} rx="5" ry="4" fill="rgba(255,255,255,0.5)"/>}
+                </g>
+              )
+            })}
+          </svg>
+        </div>
+      </div>
+
       <div className={styles.titleRow}>
         <div className={styles.title}>WORLD<br/>MARATHON<br/>MAJORS</div>
         <div className={styles.titleMeta}>

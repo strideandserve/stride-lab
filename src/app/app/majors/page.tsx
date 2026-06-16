@@ -6,15 +6,17 @@ export default async function MajorsPage() {
   const supabase = createServerComponentClient({ cookies })
   const { data: { session } } = await supabase.auth.getSession()
 
-  const [{ data: profileRow }, { data: races }] = await Promise.all([
+  const [{ data: profileRow }, { data: races }, { data: upcomingRaces }] = await Promise.all([
     supabase.from('profiles').select('birth_year, gender').eq('id', session!.user.id).single(),
     supabase.from('runs').select('finish_time, race_type, race_name, date').eq('user_id', session!.user.id).eq('is_race', true).order('date', { ascending: false }),
+    supabase.from('upcoming_races').select('name, date').eq('user_id', session!.user.id),
   ])
 
   return (
     <MajorsClient
       profile={profileRow ?? null}
       races={races ?? []}
+      upcomingRaces={upcomingRaces ?? []}
     />
   )
 }
