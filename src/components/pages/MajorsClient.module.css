@@ -248,3 +248,19 @@
 .lotteryResultTitle { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); font-weight: 600; }
 .lotteryResultSub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 .lotteryOpenAlert { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); letter-spacing: 0.5px; }
+
+/* PAST RACE BANNER */
+.pastRaceBanner {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  padding: 6px 18px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pastRaceCheck {
+  color: var(--accent);
+  font-weight: bold;
+}

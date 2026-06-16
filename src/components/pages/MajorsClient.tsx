@@ -240,7 +240,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
           {/* PAST */}
           {past.length > 0 && (
             <div className={styles.section}>
-              <div className={styles.sectionLabel}>Already Run in 2026</div>
+              <div className={styles.sectionLabel}>Planning for 2027 — 2026 races completed</div>
               <div className={styles.majorGrid}>
                 {past.map(major => <MajorCard key={major.id} major={major} age={age} gender={gender} marathonPR={marathonPRTime} upcoming={false} entered={enteredLottery[major.id]||false} onToggle={()=>toggleLottery(major.id)}/>)}
               </div>
@@ -326,7 +326,7 @@ function MajorCard({ major, age, gender, marathonPR, upcoming, entered, onToggle
   const awaitingResults = entered && resultDays !== null && resultDays > 0
 
   return (
-    <div className={`${styles.majorCard} ${!upcoming ? styles.majorCardPast : ''}`}>
+    <div className={styles.majorCard}>
       <div className={styles.majorCardAccent} style={{background: major.color}}/>
       <div className={styles.majorCardHeader}>
         <div className={styles.majorFlag}>{major.flag}</div>
@@ -337,30 +337,52 @@ function MajorCard({ major, age, gender, marathonPR, upcoming, entered, onToggle
         {qualified && <div className={styles.majorQualBadge}>✓ BQ</div>}
       </div>
 
-      <div className={styles.majorDateRow}>
-        <div className={styles.majorDate}>
-          <div className={styles.majorDateLabel}>2026 Race</div>
-          <div className={styles.majorDateVal}>{formatDate(major.raceDate2026)}</div>
-          <div className={`${styles.majorDays} ${days <= 14 ? styles.majorDaysUrgent : days <= 60 ? styles.majorDaysSoon : ''}`}>
-            {days > 0 ? `${days} days away` : days === 0 ? 'TODAY' : 'Completed'}
+      {upcoming ? (
+        /* ── UPCOMING: show 2026 race date prominently ── */
+        <div className={styles.majorDateRow}>
+          <div className={styles.majorDate}>
+            <div className={styles.majorDateLabel}>2026 Race</div>
+            <div className={styles.majorDateVal}>{formatDate(major.raceDate2026)}</div>
+            <div className={`${styles.majorDays} ${days <= 14 ? styles.majorDaysUrgent : days <= 60 ? styles.majorDaysSoon : ''}`}>
+              {days > 0 ? `${days} days away` : days === 0 ? 'TODAY' : 'Completed'}
+            </div>
+          </div>
+          <div className={styles.majorDate}>
+            <div className={styles.majorDateLabel}>2027 Race (est.)</div>
+            <div className={styles.majorDateVal}>{formatDate(major.raceDate2027)}</div>
           </div>
         </div>
-        <div className={styles.majorDate}>
-          <div className={styles.majorDateLabel}>2027 Race (est.)</div>
-          <div className={styles.majorDateVal}>{formatDate(major.raceDate2027)}</div>
-        </div>
-      </div>
+      ) : (
+        /* ── PAST: 2026 already ran — focus on 2027 ── */
+        <>
+          <div className={styles.pastRaceBanner}>
+            <span className={styles.pastRaceCheck}>✓</span> 2026 race completed — planning ahead for 2027
+          </div>
+          <div className={styles.majorDateRow}>
+            <div className={styles.majorDate}>
+              <div className={styles.majorDateLabel}>Next Race — 2027</div>
+              <div className={styles.majorDateVal}>{formatDate(major.raceDate2027)}</div>
+              <div className={styles.majorDays}>
+                in {daysUntil(major.raceDate2027)} days
+              </div>
+            </div>
+          </div>
+        </>
+      )}
 
       <div className={styles.majorDivider}/>
 
       <div className={styles.majorEntryRow}>
         <div className={styles.majorEntryBlock}>
-          <div className={styles.majorEntryLabel}>Lottery</div>
+          <div className={styles.majorEntryLabel}>{upcoming ? 'Lottery' : '2027 Lottery'}</div>
           <div className={styles.majorEntryVal}>{major.lotteryWindow}</div>
           {lotteryOpen && (
             <div className={styles.majorLotteryAlert}>🎟 Opens in {lotteryDays} days</div>
           )}
-          {major.lotteryOpens && !lotteryOpen && lotteryDays && lotteryDays > 0 && (
+          {lotteryIsOpen && (
+            <div className={styles.majorLotteryAlert}>🎟 Lottery is open now!</div>
+          )}
+          {major.lotteryOpens && !lotteryOpen && !lotteryIsOpen && lotteryDays && lotteryDays > 0 && (
             <div className={styles.majorLotteryDate}>{formatDateShort(major.lotteryOpens)}</div>
           )}
           <div className={styles.majorOdds}>Odds: {major.lotteryOdds}</div>
