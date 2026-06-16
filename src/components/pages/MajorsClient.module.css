@@ -67,9 +67,18 @@
 }
 .stoneLabelEarned { opacity: 1; }
 .stoneLabelPlanned { opacity: 0.7; }
+.stoneCity {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  color: #8a7020;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 .stonePendingBadge {
   position: absolute;
-  bottom: -18px;
+  bottom: -28px;
   font-family: 'DM Mono', monospace;
   font-size: 8px;
   letter-spacing: 0.5px;

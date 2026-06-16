@@ -93,7 +93,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
       {/* INFINITY GAUNTLET */}
       <div className={styles.gauntlet}>
         <div className={styles.gauntletLeft}>
-          <div className={styles.gauntletTitle}>SIX STAR GAUNTLET</div>
+          <div className={styles.gauntletTitle}>MAJOR MARATHON GAUNTLET</div>
           <div className={styles.gauntletSub}>
             {stonesEarned === 0 && 'Complete a World Major to earn your first stone.'}
             {stonesEarned > 0 && stonesEarned < 7 && `${stonesEarned} of 7 Majors completed`}
@@ -119,6 +119,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
                   <div className={`${styles.stoneLabel} ${completed?styles.stoneLabelEarned:planned?styles.stoneLabelPlanned:''}`}>
                     {major.flag}
                   </div>
+                  <div className={styles.stoneCity}>{major.city}</div>
                   {planned && !completed && <div className={styles.stonePendingBadge}>Planned</div>}
                   {completed && <div className={styles.stoneCompleteBadge}>✓</div>}
                 </div>
