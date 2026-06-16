@@ -13,6 +13,7 @@ const TABS = [
   { id: 'training', href: '/app/training',  icon: '📋', label: 'Training' },
   { id: 'rankings', href: '/app/rankings',  icon: '🏆', label: 'Rankings' },
   { id: 'races',    href: '/app/races',     icon: '🏁', label: 'Races'    },
+  { id: 'majors',   href: '/app/majors',    icon: '⭐', label: 'Majors'   },
 ]
 
 export default function AppShell({ children, userName, profile }: { children: React.ReactNode; userName: string; profile: Profile }) {

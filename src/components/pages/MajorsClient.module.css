@@ -1,0 +1,121 @@
+.wrap { padding: 40px 40px 80px; max-width: 1400px; }
+@media (max-width: 768px) { .wrap { padding: 24px 16px 100px; } }
+
+/* TITLE */
+.titleRow { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; }
+.title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px, 7vw, 80px); line-height: 0.9; letter-spacing: 2px; }
+.titleMeta { display: flex; flex-direction: column; align-items: flex-end; gap: 12px; }
+.starCount { font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
+
+/* NEXT LOTTERY ALERT */
+.nextLotteryAlert {
+  background: var(--surface);
+  border: 1px solid rgba(57,255,106,0.25);
+  border-radius: 12px;
+  padding: 14px 20px;
+  text-align: right;
+}
+.nextLotteryLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+.nextLotteryName { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px; color: var(--text); }
+.nextLotteryDate { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.nextLotteryCountdown { font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent); margin-top: 4px; font-weight: 600; }
+
+/* TABS */
+.tabs { display: flex; gap: 8px; margin-bottom: 28px; }
+.tab { font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; padding: 10px 20px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text-muted); cursor: pointer; transition: all 0.2s; text-transform: uppercase; }
+.tab:hover { border-color: var(--accent); color: var(--accent); }
+.tabActive { border-color: var(--accent); color: var(--accent); background: rgba(57,255,106,0.06); }
+
+/* SECTIONS */
+.section { margin-bottom: 40px; }
+.sectionLabel { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 16px; }
+
+/* MAJOR CARDS GRID */
+.majorGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+@media (max-width: 600px) { .majorGrid { grid-template-columns: 1fr; } }
+
+.majorCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: border-color 0.2s;
+}
+.majorCard:hover { border-color: rgba(57,255,106,0.3); }
+.majorCardPast { opacity: 0.6; filter: saturate(0.4); }
+.majorCardAccent { height: 4px; width: 100%; }
+.majorCardHeader { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; }
+.majorFlag { font-size: 28px; flex-shrink: 0; }
+.majorCardInfo { flex: 1; min-width: 0; }
+.majorName { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.5px; color: var(--text); line-height: 1.1; }
+.majorCity { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); letter-spacing: 0.5px; margin-top: 2px; }
+.majorQualBadge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; background: rgba(57,255,106,0.15); border: 1px solid rgba(57,255,106,0.4); color: var(--accent); border-radius: 6px; padding: 4px 8px; flex-shrink: 0; }
+
+.majorDateRow { display: flex; gap: 0; padding: 0 18px 14px; }
+.majorDate { flex: 1; }
+.majorDateLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 3px; }
+.majorDateVal { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); }
+.majorDays { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+.majorDaysUrgent { color: var(--red); }
+.majorDaysSoon { color: var(--warn); }
+
+.majorDivider { height: 1px; background: var(--border); margin: 0 18px; }
+
+.majorEntryRow { display: flex; gap: 0; padding: 14px 18px 14px; }
+.majorEntryBlock { flex: 1; }
+.majorEntryLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 6px; }
+.majorEntryVal { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.majorLotteryAlert { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); margin-top: 4px; }
+.majorLotteryDate { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.majorOdds { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+.majorQualTime { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--text); letter-spacing: 0.5px; }
+.majorQualSub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+.majorGuaranteed { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); margin-top: 4px; }
+.majorQualNA { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); font-style: italic; }
+
+.majorLink { display: block; margin: 0 18px 16px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+.majorLink:hover { color: var(--accent); }
+
+/* QUALIFYING TAB */
+.noProfile { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); line-height: 1.6; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+.noProfile strong { color: var(--accent); }
+
+.qualHeader { margin-bottom: 20px; }
+.qualTitle { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px; }
+.qualMeta { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+.qualGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+@media (max-width: 600px) { .qualGrid { grid-template-columns: 1fr; } }
+
+.qualCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  transition: border-color 0.2s;
+}
+.qualCardAchieved { box-shadow: 0 0 0 1px rgba(57,255,106,0.25), 0 0 16px rgba(57,255,106,0.08); }
+.qualCardAccent { height: 4px; }
+.qualCardHeader { display: flex; align-items: center; gap: 10px; padding: 14px 16px 8px; }
+.qualCardFlag { font-size: 22px; }
+.qualCardName { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 0.5px; line-height: 1.1; }
+.qualCardCity { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-dim); margin-top: 2px; }
+.qualBadge { margin-left: auto; font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; background: rgba(57,255,106,0.12); border: 1px solid rgba(57,255,106,0.3); color: var(--accent); border-radius: 6px; padding: 4px 8px; flex-shrink: 0; }
+
+.qualTime { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--text); letter-spacing: 1px; padding: 4px 16px 0; }
+.qualTimeLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; padding: 0 16px 8px; }
+.qualGapAchieved { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--accent); padding: 0 16px 6px; }
+.qualGapNeeded { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--warn); padding: 0 16px 6px; }
+.qualGuaranteed { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--accent); padding: 0 16px 6px; }
+.qualNotGuaranteed { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); padding: 0 16px 6px; }
+.qualNA { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); font-style: italic; padding: 12px 16px; }
+.qualNotes { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.5; padding: 8px 16px; border-top: 1px solid var(--border); }
+.qualLink { display: block; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 1px; color: var(--text-dim); text-decoration: none; padding: 10px 16px; transition: color 0.2s; }
+.qualLink:hover { color: var(--accent); }
