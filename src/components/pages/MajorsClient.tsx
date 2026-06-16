@@ -52,6 +52,18 @@ function formatDateShort(dateStr: string) {
 
 export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
   const [activeTab, setActiveTab] = useState<'overview' | 'qualifying'>('overview')
+  const [enteredLottery, setEnteredLottery] = useState<Record<string, boolean>>(() => {
+    if (typeof window === 'undefined') return {}
+    try { return JSON.parse(localStorage.getItem('majorLotteryEntered') || '{}') } catch { return {} }
+  })
+
+  function toggleLottery(id: string) {
+    setEnteredLottery(prev => {
+      const next = { ...prev, [id]: !prev[id] }
+      try { localStorage.setItem('majorLotteryEntered', JSON.stringify(next)) } catch {}
+      return next
+    })
+  }
 
   const age = profile?.birth_year ? TODAY.getFullYear() - profile.birth_year : null
   const gender = profile?.gender ?? null
@@ -220,7 +232,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
             <div className={styles.section}>
               <div className={styles.sectionLabel}>Upcoming in 2026</div>
               <div className={styles.majorGrid}>
-                {upcoming.map(major => <MajorCard key={major.id} major={major} age={age} gender={gender} marathonPR={marathonPRTime} upcoming={true}/>)}
+                {upcoming.map(major => <MajorCard key={major.id} major={major} age={age} gender={gender} marathonPR={marathonPRTime} upcoming={true} entered={enteredLottery[major.id]||false} onToggle={()=>toggleLottery(major.id)}/>)}
               </div>
             </div>
           )}
@@ -230,7 +242,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
             <div className={styles.section}>
               <div className={styles.sectionLabel}>Already Run in 2026</div>
               <div className={styles.majorGrid}>
-                {past.map(major => <MajorCard key={major.id} major={major} age={age} gender={gender} marathonPR={marathonPRTime} upcoming={false}/>)}
+                {past.map(major => <MajorCard key={major.id} major={major} age={age} gender={gender} marathonPR={marathonPRTime} upcoming={false} entered={enteredLottery[major.id]||false} onToggle={()=>toggleLottery(major.id)}/>)}
               </div>
             </div>
           )}
@@ -300,14 +312,18 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
   )
 }
 
-function MajorCard({ major, age, gender, marathonPR, upcoming }: { major: MajorMarathon; age: number|null; gender: 'male'|'female'|null; marathonPR: string|null; upcoming: boolean }) {
+function MajorCard({ major, age, gender, marathonPR, upcoming, entered, onToggle }: { major: MajorMarathon; age: number|null; gender: 'male'|'female'|null; marathonPR: string|null; upcoming: boolean; entered: boolean; onToggle: ()=>void }) {
   const days = daysUntil(major.raceDate2026)
   const qualTime = age && gender ? getMajorQualifyingTime(major, gender, age) : null
   const qualified = marathonPR && qualTime ? hasQualified(marathonPR, qualTime) : false
 
-  // Next relevant action (lottery open or race day)
   const lotteryDays = major.lotteryOpens ? daysUntil(major.lotteryOpens) : null
   const lotteryOpen = lotteryDays !== null && lotteryDays > 0 && lotteryDays < 120
+  const lotteryIsOpen = major.lotteryOpens && major.lotteryCloses
+    ? new Date() >= new Date(major.lotteryOpens) && new Date() <= new Date(major.lotteryCloses)
+    : false
+  const resultDays = major.lotteryResultsDate ? daysUntil(major.lotteryResultsDate) : null
+  const awaitingResults = entered && resultDays !== null && resultDays > 0
 
   return (
     <div className={`${styles.majorCard} ${!upcoming ? styles.majorCardPast : ''}`}>
@@ -364,6 +380,49 @@ function MajorCard({ major, age, gender, marathonPR, upcoming }: { major: MajorM
           )}
         </div>
       </div>
+
+      <div className={styles.majorDivider}/>
+
+      {/* LOTTERY ENTRY TRACKER */}
+      {major.entryMethod !== 'qualifier-only' && (
+        <div className={styles.lotteryTracker}>
+          <label className={styles.lotteryCheckRow} onClick={onToggle}>
+            <div className={`${styles.lotteryCheckBox} ${entered ? styles.lotteryCheckBoxOn : ''}`}>✓</div>
+            <div className={styles.lotteryCheckLabel}>I entered the lottery</div>
+          </label>
+          {entered && (
+            <div className={styles.lotteryResultAlert}>
+              {awaitingResults ? (
+                <>
+                  <div className={styles.lotteryResultIcon}>⏳</div>
+                  <div>
+                    <div className={styles.lotteryResultTitle}>Results expected {major.lotteryResultsDesc}</div>
+                    <div className={styles.lotteryResultSub}>in {resultDays} days · fingers crossed 🤞</div>
+                  </div>
+                </>
+              ) : resultDays !== null && resultDays <= 0 ? (
+                <>
+                  <div className={styles.lotteryResultIcon}>📬</div>
+                  <div>
+                    <div className={styles.lotteryResultTitle}>Results should be out!</div>
+                    <div className={styles.lotteryResultSub}>Check your email from {major.name}</div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className={styles.lotteryResultIcon}>📅</div>
+                  <div>
+                    <div className={styles.lotteryResultTitle}>Results: {major.lotteryResultsDesc}</div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          {lotteryIsOpen && !entered && (
+            <div className={styles.lotteryOpenAlert}>🎟 Lottery is open now!</div>
+          )}
+        </div>
+      )}
 
       <a href={major.entryUrl} target="_blank" rel="noopener noreferrer" className={styles.majorLink}>
         Official Entry Site ↗

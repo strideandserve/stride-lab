@@ -10,18 +10,20 @@ export interface MajorMarathon {
   city: string
   country: string
   flag: string
-  raceDate2026: string           // YYYY-MM-DD
-  raceDate2027: string           // YYYY-MM-DD (estimated where not yet announced)
+  raceDate2026: string
+  raceDate2027: string
   entryMethod: 'lottery' | 'qualifier-only' | 'both'
-  lotteryWindow: string          // Human-readable
-  lotteryOpens: string | null    // Approx YYYY-MM-DD for next cycle
+  lotteryWindow: string
+  lotteryOpens: string | null
   lotteryCloses: string | null
-  lotteryOdds: string            // e.g. "<10%"
+  lotteryResultsDate: string | null   // approx date results announced
+  lotteryResultsDesc: string          // human-readable e.g. "Early December"
+  lotteryOdds: string
   qualifyingTimes: QualifyingTimes | null
   qualifyingNotes: string
   entryUrl: string
-  guaranteed: boolean            // true if meeting time guarantees entry
-  color: string                  // brand color for card accent
+  guaranteed: boolean
+  color: string
 }
 
 export interface QualifyingTimes {
@@ -55,6 +57,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'Mid-August (2 weeks)',
     lotteryOpens: '2026-08-15',
     lotteryCloses: '2026-08-31',
+    lotteryResultsDate: '2026-09-15',
+    lotteryResultsDesc: 'Mid-September',
     lotteryOdds: '~10%',
     qualifyingTimes: {
       male:   { '18-34':'2:28', '35-39':'2:28', '40-44':'2:28', '45-49':'2:28', '50-54':'2:28', '55-59':'2:28', '60-64':'2:28', '65-69':'2:28', '70-74':'2:28', '75+':'2:28' },
@@ -77,6 +81,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'Registration week: early September',
     lotteryOpens: '2026-09-08',
     lotteryCloses: '2026-09-12',
+    lotteryResultsDate: '2026-09-25',
+    lotteryResultsDesc: 'Late September',
     lotteryOdds: 'Qualifier-only (no lottery)',
     qualifyingTimes: {
       male:   { '18-34':'2:55', '35-39':'3:00', '40-44':'3:05', '45-49':'3:15', '50-54':'3:20', '55-59':'3:30', '60-64':'3:50', '65-69':'4:05', '70-74':'4:20', '75+':'4:35' },
@@ -99,6 +105,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'Late April–early May (day after race)',
     lotteryOpens: '2026-04-27',
     lotteryCloses: '2026-05-04',
+    lotteryResultsDate: '2026-06-01',
+    lotteryResultsDesc: 'Late May / Early June',
     lotteryOdds: '<5%',
     qualifyingTimes: {
       male:   { '18-34':'2:52', '35-39':'2:52', '40-44':'2:57', '45-49':'3:02', '50-54':'3:07', '55-59':'3:12', '60-64':'3:34', '65-69':'3:52', '70-74':'4:52', '75+':'5:07' },
@@ -121,6 +129,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'September (opens ~6 weeks after race)',
     lotteryOpens: '2026-09-10',
     lotteryCloses: '2026-10-15',
+    lotteryResultsDate: '2026-11-10',
+    lotteryResultsDesc: 'Mid-November',
     lotteryOdds: '~33%',
     qualifyingTimes: {
       male:   { '18-34':'2:53', '35-39':'2:55', '40-44':'2:58', '45-49':'3:05', '50-54':'3:14', '55-59':'3:23', '60-64':'3:34', '65-69':'3:45', '70-74':'4:10', '75+':'4:30' },
@@ -143,6 +153,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'Early October–mid November',
     lotteryOpens: '2026-10-01',
     lotteryCloses: '2026-11-15',
+    lotteryResultsDate: '2026-12-05',
+    lotteryResultsDesc: 'Early December',
     lotteryOdds: '~20%',
     qualifyingTimes: {
       male:   { '18-34':'2:45', '35-39':'2:45', '40-44':'2:45', '45-49':'2:55', '50-54':'2:55', '55-59':'2:55', '60-64':'3:25', '65-69':'3:25', '70-74':'3:25', '75+':'3:25' },
@@ -165,6 +177,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'Late October (opens ~2 weeks after race)',
     lotteryOpens: '2026-10-25',
     lotteryCloses: '2026-11-30',
+    lotteryResultsDate: '2026-12-15',
+    lotteryResultsDesc: 'Mid-December',
     lotteryOdds: '~25%',
     qualifyingTimes: {
       male:   { '18-34':'2:50', '35-39':'2:55', '40-44':'3:00', '45-49':'3:10', '50-54':'3:15', '55-59':'3:25', '60-64':'3:40', '65-69':'3:55', '70-74':'4:15', '75+':'4:30' },
@@ -187,6 +201,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'February',
     lotteryOpens: '2027-02-01',
     lotteryCloses: '2027-02-28',
+    lotteryResultsDate: '2027-03-07',
+    lotteryResultsDesc: 'Early March',
     lotteryOdds: '~4%',
     qualifyingTimes: {
       male:   { '18-34':'2:53', '35-39':'2:55', '40-44':'2:58', '45-49':'3:05', '50-54':'3:15', '55-59':'3:23', '60-64':'3:34', '65-69':'3:45', '70-74':'4:10', '75+':'4:30' },
