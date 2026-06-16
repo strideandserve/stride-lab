@@ -1,6 +1,6 @@
 'use client'
 import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { TrainingPlan, PlannedRun, Shoe, Run, RunType } from '@/lib/types'
 import { RUN_TYPE_LABELS, RUN_TYPE_COLORS, DAY_LABELS, catLabel, CAT_COLORS, paceToSeconds, getMonday, formatPaceInput } from '@/lib/utils'
@@ -21,14 +21,17 @@ const RUN_TYPES: RunType[] = ['recovery','recovery_strides','gen_aerobic','med_l
 const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 
 export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Props) {
-  const router   = useRouter()
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const weekParam    = searchParams ? parseInt(searchParams.get('week') || '0') : 0
   const supabase = createClient()
   const [, startTransition] = useTransition()
   const refresh  = () => startTransition(() => router.refresh())
 
   const activePlan = plans.find(p => p.active) ?? plans[0] ?? null
+  const activeShoes = shoes.filter(s => !s.retired)
   const [selectedPlanId, setSelectedPlanId] = useState(activePlan?.id ?? '')
-  const [viewWeek, setViewWeek] = useState<number>(1)
+  const [viewWeek, setViewWeek] = useState<number>(weekParam > 0 ? weekParam : 1)
 
   // Plan modal
   const [planModal, setPlanModal] = useState(false)
@@ -237,9 +240,9 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   const weekDates = currentPlan ? getWeekDates(currentPlan, viewWeek) : []
   const isCurrentWeek = currentPlan ? viewWeek === getCurrentWeek(currentPlan) : false
 
-  // Shoe forecast: planned miles per shoe
+  // Shoe forecast: planned miles per shoe (active only)
   function shoeForecasts() {
-    return shoes.map(shoe => {
+    return activeShoes.map(shoe => {
       const sr = runs.filter(r => r.shoe_id === shoe.id)
       const usedMi = (shoe.start_miles || 0) + sr.reduce((a, r) => a + (r.miles || 0), 0)
       const plannedMi = plannedRuns.filter(p => p.shoe_id === shoe.id && !p.logged_run_id)
@@ -499,7 +502,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
           <FormLabel>Shoe</FormLabel>
           <FormSelect value={prShoe} onChange={e=>setPrShoe(e.target.value)}>
             <option value="">No shoe assigned</option>
-            {shoes.map(s=><option key={s.id} value={s.id}>{s.brand} {s.name}</option>)}
+            {activeShoes.map(s=><option key={s.id} value={s.id}>{s.brand} {s.name}</option>)}
           </FormSelect>
         </FormGroup>
         <FormGroup><FormLabel>Notes (optional)</FormLabel><FormInput placeholder="Easy effort, conversational pace" value={prNotes} onChange={e=>setPrNotes(e.target.value)}/></FormGroup>
