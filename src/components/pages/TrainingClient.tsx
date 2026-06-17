@@ -538,6 +538,9 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                       const plannedPct = Math.min(100, (w.plannedMi / niceMax) * 100)
                       return (
                         <div key={w.weekNum} className={styles.mileageBarCol} onClick={()=>setViewWeek(w.weekNum)} title={`Week ${w.weekNum}: ${w.loggedMi.toFixed(1)} of ${w.plannedMi.toFixed(1)} mi`}>
+                          <div className={styles.mileageBarValue}>
+                            {w.hasLogged ? w.loggedMi.toFixed(1) : w.plannedMi > 0 ? w.plannedMi.toFixed(1) : ''}
+                          </div>
                           <div className={styles.mileageBarTrack}>
                             <div className={styles.mileageBarPlanned} style={{height:`${plannedPct}%`}}/>
                             {w.hasLogged && <div className={styles.mileageBarLogged} style={{height:`${loggedPct}%`}}/>}
@@ -547,6 +550,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                       )
                     })}
                   </div>
+                </div>
                 </div>
                 <div className={styles.mileageLegend}>
                   <div className={styles.legendItem}><div className={styles.legendSwatch} style={{background:'var(--accent)'}}/>Logged</div>
