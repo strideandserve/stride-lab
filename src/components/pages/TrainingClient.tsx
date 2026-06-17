@@ -240,6 +240,80 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   const weekDates = currentPlan ? getWeekDates(currentPlan, viewWeek) : []
   const isCurrentWeek = currentPlan ? viewWeek === getCurrentWeek(currentPlan) : false
 
+  // ── WEEKLY MILEAGE TRACKER ──
+  // For each week of the current plan, sum the actual logged miles (from linked runs)
+  // and the planned miles, so progress through the block is visible at a glance.
+  function weeklyMileageData() {
+    if (!currentPlan) return []
+    return Array.from({ length: currentPlan.weeks }, (_, i) => {
+      const weekNum = i + 1
+      const wRuns = planRuns.filter(p => p.week_number === weekNum)
+      const plannedMi = wRuns.reduce((a, p) => a + p.planned_miles, 0)
+      const loggedMi = wRuns.reduce((a, p) => {
+        if (!p.logged_run_id) return a
+        const r = runs.find(x => x.id === p.logged_run_id)
+        return a + (r?.miles || 0)
+      }, 0)
+      const hasLogged = wRuns.some(p => p.logged_run_id)
+      const isPast = weekNum < getCurrentWeek(currentPlan)
+      const isCurrent = weekNum === getCurrentWeek(currentPlan)
+      return { weekNum, plannedMi, loggedMi, hasLogged, isPast, isCurrent }
+    })
+  }
+
+  // ── PERFORMANCE TREND (Efficiency Factor methodology) ──
+  // Efficiency Factor = pace-speed / heart rate. A run that covers more distance
+  // per heartbeat is more aerobically efficient. Comparing EF between similar-length
+  // runs over the training block shows whether the runner is genuinely getting fitter,
+  // independent of whether any single run happened to be faster or slower.
+  // This mirrors the standard methodology used by TrainingPeaks (Normalized Graded
+  // Pace ÷ average HR) — a rising EF over time indicates improving aerobic fitness.
+  function computeEF(run: Run): number | null {
+    const paceSecs = paceToSeconds(run.pace)
+    if (!paceSecs || !run.hr) return null
+    const speedYdsPerMin = (1609.34 / paceSecs) * 60 // meters/min from pace
+    return Math.round((speedYdsPerMin / run.hr) * 1000) / 1000
+  }
+
+  function performanceTrend() {
+    const scored = runs
+      .filter(r => r.pace && r.hr && r.miles >= 3) // ignore very short recovery jogs — too noisy
+      .map(r => ({ run: r, ef: computeEF(r) }))
+      .filter((x): x is { run: Run; ef: number } => x.ef !== null)
+      .sort((a, b) => new Date(a.run.date).getTime() - new Date(b.run.date).getTime())
+
+    if (scored.length < 4) return null // not enough data for a meaningful trend
+
+    // Split into first-half vs second-half of the available history (within the plan)
+    const planRunIds = new Set(planRuns.filter(p => p.logged_run_id).map(p => p.logged_run_id))
+    const blockScored = scored.filter(x => planRunIds.has(x.run.id))
+    const pool = blockScored.length >= 4 ? blockScored : scored
+    const mid = Math.floor(pool.length / 2)
+    const firstHalf = pool.slice(0, mid)
+    const secondHalf = pool.slice(mid)
+    const avgEF = (arr: typeof pool) => arr.reduce((a, x) => a + x.ef, 0) / arr.length
+    const efEarly = avgEF(firstHalf)
+    const efLate = avgEF(secondHalf)
+    const pctChange = ((efLate - efEarly) / efEarly) * 100
+
+    // Find comparable "similar distance" run pairs (within 1 mile of each other) to
+    // show a concrete before/after example, which is more intuitive than a raw EF number
+    let bestPair: { early: Run; late: Run; paceDeltaSecs: number; hrDelta: number } | null = null
+    for (const a of firstHalf) {
+      for (const b of secondHalf) {
+        if (Math.abs(a.run.miles - b.run.miles) <= 1) {
+          const paceA = paceToSeconds(a.run.pace), paceB = paceToSeconds(b.run.pace)
+          if (paceA && paceB && a.run.hr && b.run.hr) {
+            const candidate = { early: a.run, late: b.run, paceDeltaSecs: paceA - paceB, hrDelta: (a.run.hr||0) - (b.run.hr||0) }
+            if (!bestPair || Math.abs(candidate.paceDeltaSecs) > Math.abs(bestPair.paceDeltaSecs)) bestPair = candidate
+          }
+        }
+      }
+    }
+
+    return { efEarly, efLate, pctChange, sampleSize: pool.length, bestPair, usingFullHistory: blockScored.length < 4 }
+  }
+
   // Shoe forecast: planned miles per shoe (active only)
   function shoeForecasts() {
     return activeShoes.map(shoe => {
@@ -256,6 +330,8 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   }
 
   const forecasts = shoeForecasts()
+  const weeklyData = weeklyMileageData()
+  const trend = performanceTrend()
 
   return (
     <div className={styles.wrap}>
@@ -431,6 +507,71 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
               )
             })}
           </div>
+
+          {/* WEEKLY MILEAGE TRACKER */}
+          {currentPlan && (
+            <>
+              <div className={styles.sectionTitle} style={{marginTop:40}}>Weekly Mileage Tracker</div>
+              <div className={styles.mileageTrackerWrap}>
+                <div className={styles.mileageBars}>
+                  {weeklyData.map(w => {
+                    const maxMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 1)
+                    const loggedPct = Math.min(100, (w.loggedMi / maxMi) * 100)
+                    const plannedPct = Math.min(100, (w.plannedMi / maxMi) * 100)
+                    return (
+                      <div key={w.weekNum} className={styles.mileageBarCol} onClick={()=>setViewWeek(w.weekNum)} title={`Week ${w.weekNum}: ${w.loggedMi.toFixed(1)} of ${w.plannedMi.toFixed(1)} mi`}>
+                        <div className={styles.mileageBarTrack}>
+                          <div className={styles.mileageBarPlanned} style={{height:`${plannedPct}%`}}/>
+                          {w.hasLogged && <div className={styles.mileageBarLogged} style={{height:`${loggedPct}%`}}/>}
+                        </div>
+                        <div className={`${styles.mileageBarLabel} ${w.isCurrent?styles.mileageBarLabelCurrent:''}`}>W{w.weekNum}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className={styles.mileageLegend}>
+                  <div className={styles.legendItem}><div className={styles.legendSwatch} style={{background:'var(--accent)'}}/>Logged</div>
+                  <div className={styles.legendItem}><div className={styles.legendSwatch} style={{background:'var(--border)'}}/>Planned</div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* PERFORMANCE TREND */}
+          {trend && (
+            <>
+              <div className={styles.sectionTitle} style={{marginTop:40}}>Performance Trend</div>
+              <div className={styles.trendCard}>
+                <div className={styles.trendHeadline}>
+                  <div className={styles.trendPct} style={{color: trend.pctChange >= 0 ? 'var(--accent)' : 'var(--red)'}}>
+                    {trend.pctChange >= 0 ? '+' : ''}{trend.pctChange.toFixed(1)}%
+                  </div>
+                  <div className={styles.trendPctLabel}>
+                    aerobic efficiency {trend.pctChange >= 0 ? 'improvement' : 'decline'}
+                    {trend.usingFullHistory && <span className={styles.trendNote}> (based on full run history — not enough logged runs in this block yet)</span>}
+                  </div>
+                </div>
+                {trend.bestPair && (
+                  <div className={styles.trendComparison}>
+                    <div className={styles.trendComparisonItem}>
+                      <div className={styles.trendComparisonLabel}>Earlier ({trend.bestPair.early.date})</div>
+                      <div className={styles.trendComparisonVal}>{trend.bestPair.early.miles} mi · {trend.bestPair.early.pace}/mi · {trend.bestPair.early.hr} bpm</div>
+                    </div>
+                    <div className={styles.trendArrow}>→</div>
+                    <div className={styles.trendComparisonItem}>
+                      <div className={styles.trendComparisonLabel}>Recently ({trend.bestPair.late.date})</div>
+                      <div className={styles.trendComparisonVal}>{trend.bestPair.late.miles} mi · {trend.bestPair.late.pace}/mi · {trend.bestPair.late.hr} bpm</div>
+                    </div>
+                  </div>
+                )}
+                <div className={styles.trendMethodology}>
+                  Compares your <strong>Efficiency Factor</strong> (pace ÷ heart rate — how far you cover per heartbeat) between the first and second half of your logged runs.
+                  A rising EF means you're covering more ground for the same cardiovascular effort — the standard signal of improving aerobic fitness, independent of whether
+                  any single run happened to be faster or slower due to weather, terrain, or fatigue. Based on {trend.sampleSize} qualifying runs (pace + HR logged, 3+ miles).
+                </div>
+              </div>
+            </>
+          )}
 
           {/* SHOE FORECAST */}
           {forecasts.length > 0 && (

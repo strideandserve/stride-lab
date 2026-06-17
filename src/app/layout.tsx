@@ -2,10 +2,10 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Stride Lab',
+  title: 'Stride Index',
   description: 'Track your running shoes, performance, and race history.',
   manifest: '/manifest.json',
-  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Stride Lab' },
+  appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Stride Index' },
   icons: {
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
     icon:  [

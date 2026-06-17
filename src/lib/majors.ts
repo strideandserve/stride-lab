@@ -105,8 +105,8 @@ export const MAJORS: MajorMarathon[] = [
     lotteryWindow: 'Late April–early May (day after race)',
     lotteryOpens: '2026-04-27',
     lotteryCloses: '2026-05-04',
-    lotteryResultsDate: '2026-06-01',
-    lotteryResultsDesc: 'Late May / Early June',
+    lotteryResultsDate: '2026-07-15',
+    lotteryResultsDesc: 'Mid-July',
     lotteryOdds: '<5%',
     qualifyingTimes: {
       male:   { '18-34':'2:52', '35-39':'2:52', '40-44':'2:57', '45-49':'3:02', '50-54':'3:07', '55-59':'3:12', '60-64':'3:34', '65-69':'3:52', '70-74':'4:52', '75+':'5:07' },

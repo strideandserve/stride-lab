@@ -1,6 +1,6 @@
 {
-  "name": "Stride Lab",
-  "short_name": "Stride Lab",
+  "name": "Stride Index",
+  "short_name": "Stride Index",
   "description": "Track your running shoes, performance, and race history.",
   "start_url": "/",
   "display": "standalone",

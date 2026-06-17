@@ -144,3 +144,29 @@
 @media (max-width: 600px) {
   .painGrid { grid-template-columns: 1fr; gap: 8px; }
 }
+
+/* WEEKLY MILEAGE TRACKER */
+.mileageTrackerWrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px 20px 16px; }
+.mileageBars { display: flex; align-items: flex-end; gap: 6px; height: 160px; overflow-x: auto; padding-bottom: 4px; }
+.mileageBarCol { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: 1; min-width: 28px; height: 100%; cursor: pointer; justify-content: flex-end; }
+.mileageBarTrack { position: relative; width: 100%; max-width: 24px; height: 130px; display: flex; align-items: flex-end; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.mileageBarPlanned { position: absolute; bottom: 0; left: 0; right: 0; background: var(--border); border-radius: 4px; transition: height 0.2s; }
+.mileageBarLogged { position: absolute; bottom: 0; left: 0; right: 0; background: var(--accent); border-radius: 4px; transition: height 0.2s; box-shadow: 0 0 8px rgba(57,255,106,0.4); }
+.mileageBarLabel { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-dim); }
+.mileageBarLabelCurrent { color: var(--accent); font-weight: 600; }
+.mileageLegend { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
+.legendSwatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* PERFORMANCE TREND */
+.trendCard { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px 24px 20px; }
+.trendHeadline { display: flex; align-items: baseline; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.trendPct { font-family: 'Bebas Neue', sans-serif; font-size: 48px; line-height: 1; }
+.trendPctLabel { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); }
+.trendNote { color: var(--text-dim); font-style: italic; }
+.trendComparison { display: flex; align-items: center; gap: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; flex-wrap: wrap; }
+.trendComparisonItem { flex: 1; min-width: 160px; }
+.trendComparisonLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 4px; }
+.trendComparisonVal { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); }
+.trendArrow { font-size: 18px; color: var(--text-dim); flex-shrink: 0; }
+.trendMethodology { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); line-height: 1.6; }
+.trendMethodology strong { color: var(--text-muted); }

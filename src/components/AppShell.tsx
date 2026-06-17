@@ -145,7 +145,7 @@ export default function AppShell({ children, userName, profile }: { children: Re
       {/* TOP NAV — desktop */}
       <nav className={styles.nav}>
         <div className={styles.logo} onClick={() => router.push('/app')}>
-          STRIDE<span>LAB</span>
+          STRIDE<span>INDEX</span>
         </div>
         <div className={styles.navLinks}>
           {TABS.map(t => (
