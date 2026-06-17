@@ -614,23 +614,28 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
         </summary>
         <div className={styles.methodologyBody}>
           <p>
-            Every shoe's score is condition-adjusted — a run in the heat, humidity, or hills
-            isn't penalized the same as a flat, cool-weather effort. The score blends three
-            components, re-weighted based on the type of workout:
+            The composite score is built on two established exercise-science models rather than
+            simple pace and heart rate scales, so it captures genuine performance — not just "ran fast that day."
+            Every run is first condition-adjusted for heat, humidity, and elevation, then scored
+            across three components:
           </p>
           <div className={styles.methodologyGrid}>
             <div className={styles.methodologyItem}>
-              <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>Condition-Adjusted Pace</div>
+              <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>VDOT Performance Score</div>
               <div className={styles.methodologyDesc}>
-                Your pace, adjusted for temperature (above 55°F), humidity (above 60%), and
-                elevation gain — so a hot, hilly long run is scored fairly against a cool, flat one.
+                Based on Jack Daniels' VDOT formula — the same model elite coaches use to equate
+                race performances across distances. It converts your pace into an oxygen-cost-equivalent
+                value, capturing both fitness and running economy in one number rather than rewarding
+                raw speed alone.
               </div>
             </div>
             <div className={styles.methodologyItem}>
-              <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>Cardiac Efficiency</div>
+              <div className={styles.methodologyLabel} style={{color:'var(--accent)'}}>TRIMP Effort Score</div>
               <div className={styles.methodologyDesc}>
-                A blend of your adjusted pace and heart rate control — a run that's both fast
-                and keeps your heart rate in check scores higher than a fast run at max effort.
+                Based on Banister's Training Impulse model, which weights heart rate exponentially
+                rather than linearly — physiological strain rises faster than HR does. This component
+                asks whether your heart rate was appropriately controlled for the pace you ran, or
+                higher than the pace alone would predict.
               </div>
             </div>
             <div className={styles.methodologyItem}>
@@ -642,9 +647,9 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
           </div>
           <p className={styles.methodologyNote}>
             <strong>Run type changes the weighting.</strong> Recovery runs lean on comfort and
-            efficiency over speed. Tempo, LT, and speed workouts weight pace heavily. Long runs
-            and general aerobic runs use a balanced blend. This means the same shoe can score
-            differently across run types — which is the point: a shoe that's great for easy
+            effort control over speed. Tempo, LT, and speed workouts weight the VDOT performance
+            score heavily. Long runs and general aerobic runs use a balanced blend. This means
+            the same shoe can score differently across run types — a shoe that's great for easy
             days might not be your best tempo shoe, and vice versa.
           </p>
         </div>

@@ -31,7 +31,21 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   const activePlan = plans.find(p => p.active) ?? plans[0] ?? null
   const activeShoes = shoes.filter(s => !s.retired)
   const [selectedPlanId, setSelectedPlanId] = useState(activePlan?.id ?? '')
-  const [viewWeek, setViewWeek] = useState<number>(weekParam > 0 ? weekParam : 1)
+
+  // Current week based on plan start date (Monday-aligned weeks) — defined early
+  // so the initial viewWeek state can default to "this week" instead of week 1.
+  const today = new Date(); today.setHours(0,0,0,0)
+  function getCurrentWeek(plan: TrainingPlan) {
+    const todayMonday = getMonday(today.toISOString().split('T')[0])
+    const startMonday = getMonday(plan.start_date)
+    const diff = Math.floor((todayMonday.getTime() - startMonday.getTime()) / (7 * 864e5))
+    return Math.max(1, Math.min(plan.weeks, diff + 1))
+  }
+
+  const [viewWeek, setViewWeek] = useState<number>(() => {
+    if (weekParam > 0) return weekParam
+    return activePlan ? getCurrentWeek(activePlan) : 1
+  })
 
   // Plan modal
   const [planModal, setPlanModal] = useState(false)
@@ -78,15 +92,6 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
 
   // Get planned runs for current plan
   const planRuns = plannedRuns.filter(r => r.plan_id === currentPlan?.id)
-
-  // Current week based on plan start date (Monday-aligned weeks)
-  const today = new Date(); today.setHours(0,0,0,0)
-  function getCurrentWeek(plan: TrainingPlan) {
-    const todayMonday = getMonday(today.toISOString().split('T')[0])
-    const startMonday = getMonday(plan.start_date)
-    const diff = Math.floor((todayMonday.getTime() - startMonday.getTime()) / (7 * 864e5))
-    return Math.max(1, Math.min(plan.weeks, diff + 1))
-  }
 
   // Set viewWeek to current when plan changes
   function selectPlan(id: string) {
@@ -513,21 +518,36 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
             <>
               <div className={styles.sectionTitle} style={{marginTop:40}}>Weekly Mileage Tracker</div>
               <div className={styles.mileageTrackerWrap}>
-                <div className={styles.mileageBars}>
-                  {weeklyData.map(w => {
-                    const maxMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 1)
-                    const loggedPct = Math.min(100, (w.loggedMi / maxMi) * 100)
-                    const plannedPct = Math.min(100, (w.plannedMi / maxMi) * 100)
-                    return (
-                      <div key={w.weekNum} className={styles.mileageBarCol} onClick={()=>setViewWeek(w.weekNum)} title={`Week ${w.weekNum}: ${w.loggedMi.toFixed(1)} of ${w.plannedMi.toFixed(1)} mi`}>
-                        <div className={styles.mileageBarTrack}>
-                          <div className={styles.mileageBarPlanned} style={{height:`${plannedPct}%`}}/>
-                          {w.hasLogged && <div className={styles.mileageBarLogged} style={{height:`${loggedPct}%`}}/>}
+                <div className={styles.mileageChartRow}>
+                  <div className={styles.mileageYAxis}>
+                    {(() => {
+                      const maxMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 1)
+                      const niceMax = Math.ceil(maxMi / 10) * 10 || 10
+                      const steps = 4
+                      return Array.from({ length: steps + 1 }, (_, i) => {
+                        const val = Math.round((niceMax / steps) * (steps - i))
+                        return <div key={i} className={styles.mileageYLabel}>{val} mi</div>
+                      })
+                    })()}
+                  </div>
+                  <div className={styles.mileageBars}>
+                    {weeklyData.map(w => {
+                      const maxMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 1)
+                      const niceMax = Math.ceil(maxMi / 10) * 10 || 10
+                      const loggedPct = Math.min(100, (w.loggedMi / niceMax) * 100)
+                      const plannedPct = Math.min(100, (w.plannedMi / niceMax) * 100)
+                      return (
+                        <div key={w.weekNum} className={styles.mileageBarCol} onClick={()=>setViewWeek(w.weekNum)} title={`Week ${w.weekNum}: ${w.loggedMi.toFixed(1)} of ${w.plannedMi.toFixed(1)} mi`}>
+                          <div className={styles.mileageBarTrack}>
+                            <div className={styles.mileageBarPlanned} style={{height:`${plannedPct}%`}}/>
+                            {w.hasLogged && <div className={styles.mileageBarLogged} style={{height:`${loggedPct}%`}}/>}
+                          </div>
+                          <div className={`${styles.mileageBarLabel} ${w.isCurrent?styles.mileageBarLabelCurrent:''}`}>W{w.weekNum}</div>
                         </div>
-                        <div className={`${styles.mileageBarLabel} ${w.isCurrent?styles.mileageBarLabelCurrent:''}`}>W{w.weekNum}</div>
-                      </div>
-                    )
-                  })}
+                      )
+                    })}
+                  </div>
+                </div>
                 </div>
                 <div className={styles.mileageLegend}>
                   <div className={styles.legendItem}><div className={styles.legendSwatch} style={{background:'var(--accent)'}}/>Logged</div>
