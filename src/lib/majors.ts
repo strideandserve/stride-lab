@@ -3,6 +3,11 @@
 // official race websites. Race dates are for 2026 season.
 // Qualifying times sourced from official race sites (April 2026).
 // Lottery windows are approximate — check official sites for exact dates.
+//
+// UPDATE (June 2026): Cape Town Marathon confirmed as the 8th Abbott World
+// Marathon Major on June 10, 2026, joining as Africa's first Major. It formally
+// enters the series at its May 23, 2027 edition. Qualifying time standards for
+// the inaugural Major edition had not yet been published as of this update.
 
 export interface MajorMarathon {
   id: string
@@ -212,6 +217,31 @@ export const MAJORS: MajorMarathon[] = [
     entryUrl: 'https://www.nyrr.org/tcsnycmarathon',
     guaranteed: false,
     color: '#ff6200',
+  },
+  {
+    id: 'capetown',
+    name: 'Cape Town Marathon',
+    city: 'Cape Town',
+    country: 'South Africa',
+    flag: '🇿🇦',
+    // Cape Town was confirmed as the 8th Abbott World Marathon Major on June 10, 2026,
+    // formally joining the series at its next edition. It has no 2026 Major race (the
+    // qualifying evaluation race was May 24, 2026, before Major status was confirmed),
+    // so raceDate2026 is set to the 2027 date so it sorts correctly as "upcoming."
+    raceDate2026: '2027-05-23',
+    raceDate2027: '2027-05-23',
+    entryMethod: 'both',
+    lotteryWindow: 'Mid-June (2 weeks)',
+    lotteryOpens: '2026-06-10',
+    lotteryCloses: '2026-06-24',
+    lotteryResultsDate: '2026-06-26',
+    lotteryResultsDesc: 'June 26',
+    lotteryOdds: 'TBD — first year as a Major',
+    qualifyingTimes: null,
+    qualifyingNotes: 'Africa\'s first Abbott World Marathon Major, confirmed June 2026. Two-thirds of entries reserved for African participants. Qualifying time standards for the 2027 inaugural Major edition have not yet been published — check the official site for updates.',
+    entryUrl: 'https://www.capetownmarathon.com/',
+    guaranteed: false,
+    color: '#ffb612',
   },
 ]
 

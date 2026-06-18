@@ -520,22 +520,28 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
               <div className={styles.mileageTrackerWrap}>
                 <div className={styles.mileageChartRow}>
                   <div className={styles.mileageYAxis}>
+                    {/* Scale in clean 15-mile increments, with a 75-mile floor so the
+                        axis doesn't jump around at typical training volumes. If a future
+                        week exceeds 75 miles, the scale grows by another 15-mile step
+                        rather than rounding to an odd number. */}
                     {(() => {
-                      const maxMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 1)
-                      const niceMax = Math.ceil(maxMi / 10) * 10 || 10
-                      const steps = 4
+                      const CHART_STEP = 15
+                      const peakMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 0)
+                      const CHART_MAX = Math.max(75, Math.ceil(peakMi / CHART_STEP) * CHART_STEP)
+                      const steps = CHART_MAX / CHART_STEP
                       return Array.from({ length: steps + 1 }, (_, i) => {
-                        const val = Math.round((niceMax / steps) * (steps - i))
+                        const val = CHART_MAX - (CHART_STEP * i)
                         return <div key={i} className={styles.mileageYLabel}>{val} mi</div>
                       })
                     })()}
                   </div>
                   <div className={styles.mileageBars}>
                     {weeklyData.map(w => {
-                      const maxMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 1)
-                      const niceMax = Math.ceil(maxMi / 10) * 10 || 10
-                      const loggedPct = Math.min(100, (w.loggedMi / niceMax) * 100)
-                      const plannedPct = Math.min(100, (w.plannedMi / niceMax) * 100)
+                      const CHART_STEP = 15
+                      const peakMi = Math.max(...weeklyData.map(x=>Math.max(x.plannedMi,x.loggedMi)), 0)
+                      const CHART_MAX = Math.max(75, Math.ceil(peakMi / CHART_STEP) * CHART_STEP)
+                      const loggedPct = Math.min(100, (w.loggedMi / CHART_MAX) * 100)
+                      const plannedPct = Math.min(100, (w.plannedMi / CHART_MAX) * 100)
                       return (
                         <div key={w.weekNum} className={styles.mileageBarCol} onClick={()=>setViewWeek(w.weekNum)} title={`Week ${w.weekNum}: ${w.loggedMi.toFixed(1)} of ${w.plannedMi.toFixed(1)} mi`}>
                           <div className={styles.mileageBarValue}>

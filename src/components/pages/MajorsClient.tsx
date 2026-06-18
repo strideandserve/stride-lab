@@ -10,26 +10,28 @@ interface Props { profile: ProfileLite | null; races: RaceLite[]; upcomingRaces:
 
 // Each major has a stone color for the gauntlet
 const STONE_COLORS: Record<string, { gem: string; glow: string; label: string }> = {
-  tokyo:   { gem: '#9b5fe0', glow: 'rgba(155,95,224,0.7)',  label: 'Soul'    },
-  boston:  { gem: '#f5a623', glow: 'rgba(245,166,35,0.7)',  label: 'Reality' },
-  london:  { gem: '#47c8ff', glow: 'rgba(71,200,255,0.7)',  label: 'Space'   },
-  sydney:  { gem: '#39ff6a', glow: 'rgba(57,255,106,0.7)',  label: 'Time'    },
-  berlin:  { gem: '#ff4747', glow: 'rgba(255,71,71,0.7)',   label: 'Power'   },
-  chicago: { gem: '#ffd700', glow: 'rgba(255,215,0,0.7)',   label: 'Mind'    },
-  nyc:     { gem: '#ff6b35', glow: 'rgba(255,107,53,0.7)',  label: 'Mind'    },
+  tokyo:    { gem: '#9b5fe0', glow: 'rgba(155,95,224,0.7)',  label: 'Soul'    },
+  boston:   { gem: '#f5a623', glow: 'rgba(245,166,35,0.7)',  label: 'Reality' },
+  london:   { gem: '#47c8ff', glow: 'rgba(71,200,255,0.7)',  label: 'Space'   },
+  sydney:   { gem: '#39ff6a', glow: 'rgba(57,255,106,0.7)',  label: 'Time'    },
+  berlin:   { gem: '#ff4747', glow: 'rgba(255,71,71,0.7)',   label: 'Power'   },
+  chicago:  { gem: '#ffd700', glow: 'rgba(255,215,0,0.7)',   label: 'Mind'    },
+  nyc:      { gem: '#ff6b35', glow: 'rgba(255,107,53,0.7)',  label: 'Mind'    },
+  capetown: { gem: '#ffb612', glow: 'rgba(255,182,18,0.7)',  label: 'Origin'  },
 }
 
 function nameMatchesMajor(raceName: string | null, majorId: string): boolean {
   if (!raceName) return false
   const lower = raceName.toLowerCase()
   const matchers: Record<string, string[]> = {
-    tokyo:   ['tokyo'],
-    boston:  ['boston'],
-    london:  ['london'],
-    sydney:  ['sydney'],
-    berlin:  ['berlin'],
-    chicago: ['chicago'],
-    nyc:     ['new york', 'nyc', 'new york city'],
+    tokyo:    ['tokyo'],
+    boston:   ['boston'],
+    london:   ['london'],
+    sydney:   ['sydney'],
+    berlin:   ['berlin'],
+    chicago:  ['chicago'],
+    nyc:      ['new york', 'nyc', 'new york city'],
+    capetown: ['cape town', 'capetown'],
   }
   return (matchers[majorId] ?? []).some(k => lower.includes(k))
 }
@@ -163,8 +165,8 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
               </g>
             ))}
             {/* Knuckle stones — 4 across the knuckles */}
-            {[0,1,2,3].map(i => {
-              const major = MAJORS[i+1] // boston, london, sydney, berlin
+            {['boston','london','sydney','berlin'].map((id, i) => {
+              const major = MAJORS.find(m => m.id === id)!
               const stone = STONE_COLORS[major.id]
               const done  = completedIds.has(major.id)
               const plan  = plannedIds.has(major.id)
@@ -177,7 +179,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
             })}
             {/* Back of hand center stone */}
             {(() => {
-              const major = MAJORS[5] // chicago
+              const major = MAJORS.find(m => m.id === 'chicago')!
               const stone = STONE_COLORS[major.id]
               const done  = completedIds.has(major.id)
               const plan  = plannedIds.has(major.id)
@@ -188,15 +190,16 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
                 </g>
               )
             })()}
-            {/* Wrist stones — tokyo + nyc */}
-            {[MAJORS[0], MAJORS[6]].map((major, i) => {
+            {/* Wrist stones — tokyo, nyc, cape town */}
+            {['tokyo','nyc','capetown'].map((id, i) => {
+              const major = MAJORS.find(m => m.id === id)!
               const stone = STONE_COLORS[major.id]
               const done  = completedIds.has(major.id)
               const plan  = plannedIds.has(major.id)
               return (
                 <g key={i}>
-                  <ellipse cx={72 + i*56} cy={210} rx="12" ry="9" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1.2"/>
-                  {done && <ellipse cx={69 + i*56} cy={207} rx="5" ry="4" fill="rgba(255,255,255,0.5)"/>}
+                  <ellipse cx={68 + i*32} cy={210} rx="10" ry="8" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1.2"/>
+                  {done && <ellipse cx={65 + i*32} cy={207} rx="4" ry="3" fill="rgba(255,255,255,0.5)"/>}
                 </g>
               )
             })}
