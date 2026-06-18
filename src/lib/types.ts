@@ -8,6 +8,7 @@ export interface Profile {
   gender: 'male' | 'female' | null
   height_in: number | null
   weight_lb: number | null
+  lottery_entries: Record<string, boolean> | null
   created_at: string
 }
 

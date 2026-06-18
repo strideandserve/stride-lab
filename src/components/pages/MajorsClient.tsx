@@ -1,9 +1,10 @@
 'use client'
 import { useState } from 'react'
+import { createClient } from '@/lib/supabase'
 import { MAJORS, getMajorQualifyingTime, hasQualified, formatQualTime, type MajorMarathon } from '@/lib/majors'
 import styles from './MajorsClient.module.css'
 
-interface ProfileLite { birth_year: number | null; gender: 'male' | 'female' | null }
+interface ProfileLite { id: string; birth_year: number | null; gender: 'male' | 'female' | null; lottery_entries: Record<string, boolean> | null }
 interface RaceLite { finish_time: string | null; race_type: string | null; race_name: string | null; date: string }
 interface UpcomingRace { name: string; date: string }
 interface Props { profile: ProfileLite | null; races: RaceLite[]; upcomingRaces: UpcomingRace[] }
@@ -53,18 +54,20 @@ function formatDateShort(dateStr: string) {
 }
 
 export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
+  const supabase = createClient()
   const [activeTab, setActiveTab] = useState<'overview' | 'qualifying'>('overview')
-  const [enteredLottery, setEnteredLottery] = useState<Record<string, boolean>>(() => {
-    if (typeof window === 'undefined') return {}
-    try { return JSON.parse(localStorage.getItem('majorLotteryEntered') || '{}') } catch { return {} }
-  })
+  const [enteredLottery, setEnteredLottery] = useState<Record<string, boolean>>(profile?.lottery_entries ?? {})
 
-  function toggleLottery(id: string) {
-    setEnteredLottery(prev => {
-      const next = { ...prev, [id]: !prev[id] }
-      try { localStorage.setItem('majorLotteryEntered', JSON.stringify(next)) } catch {}
-      return next
-    })
+  async function toggleLottery(id: string) {
+    const next = { ...enteredLottery, [id]: !enteredLottery[id] }
+    setEnteredLottery(next) // optimistic update
+    if (profile?.id) {
+      const { error } = await supabase.from('profiles').update({ lottery_entries: next }).eq('id', profile.id)
+      if (error) {
+        // revert on failure so the UI doesn't silently drift from saved state
+        setEnteredLottery(enteredLottery)
+      }
+    }
   }
 
   const age = profile?.birth_year ? TODAY.getFullYear() - profile.birth_year : null
