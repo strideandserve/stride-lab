@@ -8,6 +8,7 @@ export default function AuthPage() {
   const [mode, setMode]       = useState<'login' | 'signup'>('login')
   const [email, setEmail]     = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [name, setName]       = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState<string | null>(null)
@@ -39,7 +40,7 @@ export default function AuthPage() {
   return (
     <div className={styles.wrap}>
       <div className={styles.card}>
-        <div className={styles.logo}>STRIDE<span>LAB</span></div>
+        <div className={styles.logo}>STRIDE<span>INDEX</span></div>
         <p className={styles.sub}>
           {mode === 'login' ? 'Welcome back. Log in to your account.' : 'Create your account to start tracking.'}
         </p>
@@ -57,7 +58,12 @@ export default function AuthPage() {
           </div>
           <div className={styles.field}>
             <label>Password</label>
-            <input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
+            <div className={styles.passwordWrap}>
+              <input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
+              <button type="button" className={styles.passwordToggle} onClick={() => setShowPassword(v => !v)} tabIndex={-1}>
+                {showPassword ? 'Hide' : 'Show'}
+              </button>
+            </div>
           </div>
           {error && <p className={styles.error}>{error}</p>}
           <button type="submit" className={styles.btn} disabled={loading}>

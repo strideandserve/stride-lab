@@ -59,6 +59,26 @@
 
 .field input:focus { border-color: rgba(57,255,106,0.4); }
 
+.passwordWrap { position: relative; display: flex; }
+.passwordWrap input { width: 100%; padding-right: 56px; }
+.passwordToggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 4px 6px;
+  transition: color 0.2s;
+}
+.passwordToggle:hover { color: var(--accent); }
+
 .btn {
   margin-top: 8px;
   background: var(--accent);
