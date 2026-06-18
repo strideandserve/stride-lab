@@ -225,10 +225,11 @@ export const MAJORS: MajorMarathon[] = [
     country: 'South Africa',
     flag: '🇿🇦',
     // Cape Town was confirmed as the 8th Abbott World Marathon Major on June 10, 2026,
-    // formally joining the series at its next edition. It has no 2026 Major race (the
-    // qualifying evaluation race was May 24, 2026, before Major status was confirmed),
-    // so raceDate2026 is set to the 2027 date so it sorts correctly as "upcoming."
-    raceDate2026: '2027-05-23',
+    // joining the series at its next edition. Its 2026 race (the qualifying evaluation
+    // race) already took place on May 24, 2026 — before Major status was confirmed —
+    // so it belongs in the "completed 2026, planning for 2027" bucket alongside Tokyo,
+    // Boston, and London. Its FIRST race as an official Major is May 23, 2027.
+    raceDate2026: '2026-05-24',
     raceDate2027: '2027-05-23',
     entryMethod: 'both',
     lotteryWindow: 'Mid-June (2 weeks)',

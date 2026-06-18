@@ -250,6 +250,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
   // and the planned miles, so progress through the block is visible at a glance.
   function weeklyMileageData() {
     if (!currentPlan) return []
+    const startMonday = getMonday(currentPlan.start_date)
     return Array.from({ length: currentPlan.weeks }, (_, i) => {
       const weekNum = i + 1
       const wRuns = planRuns.filter(p => p.week_number === weekNum)
@@ -262,7 +263,9 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
       const hasLogged = wRuns.some(p => p.logged_run_id)
       const isPast = weekNum < getCurrentWeek(currentPlan)
       const isCurrent = weekNum === getCurrentWeek(currentPlan)
-      return { weekNum, plannedMi, loggedMi, hasLogged, isPast, isCurrent }
+      const weekMonday = new Date(startMonday.getTime() + (weekNum - 1) * 7 * 864e5)
+      const dateLabel = weekMonday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      return { weekNum, plannedMi, loggedMi, hasLogged, isPast, isCurrent, dateLabel }
     })
   }
 
@@ -552,6 +555,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                             {w.hasLogged && <div className={styles.mileageBarLogged} style={{height:`${loggedPct}%`}}/>}
                           </div>
                           <div className={`${styles.mileageBarLabel} ${w.isCurrent?styles.mileageBarLabelCurrent:''}`}>W{w.weekNum}</div>
+                          <div className={`${styles.mileageBarDate} ${w.isCurrent?styles.mileageBarLabelCurrent:''}`}>{w.dateLabel}</div>
                         </div>
                       )
                     })}

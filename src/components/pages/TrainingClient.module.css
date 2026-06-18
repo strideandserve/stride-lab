@@ -148,15 +148,16 @@
 /* WEEKLY MILEAGE TRACKER */
 .mileageTrackerWrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px 20px 16px; }
 .mileageChartRow { display: flex; gap: 10px; align-items: flex-end; }
-.mileageYAxis { display: flex; flex-direction: column; justify-content: space-between; height: 130px; flex-shrink: 0; }
+.mileageYAxis { display: flex; flex-direction: column; justify-content: space-between; height: 175px; flex-shrink: 0; margin-top: 16px; margin-bottom: 29px; }
 .mileageYLabel { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-dim); text-align: right; min-width: 36px; transform: translateY(-4px); }
-.mileageBars { display: flex; align-items: flex-end; gap: 6px; height: 130px; overflow-x: auto; padding-bottom: 0; flex: 1; border-left: 1px solid var(--border); padding-left: 10px; }
+.mileageBars { display: flex; align-items: flex-end; gap: 6px; height: 220px; overflow-x: auto; padding-bottom: 0; flex: 1; border-left: 1px solid var(--border); padding-left: 10px; }
 .mileageBarCol { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 28px; height: 100%; cursor: pointer; justify-content: flex-end; }
 .mileageBarValue { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-muted); white-space: nowrap; }
-.mileageBarTrack { position: relative; width: 100%; max-width: 24px; height: 100px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.mileageBarTrack { position: relative; width: 100%; max-width: 24px; height: 175px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
 .mileageBarPlanned { position: absolute; bottom: 0; left: 0; right: 0; background: var(--border); border-radius: 4px; transition: height 0.2s; }
 .mileageBarLogged { position: absolute; bottom: 0; left: 0; right: 0; background: var(--accent); border-radius: 4px; transition: height 0.2s; box-shadow: 0 0 8px rgba(57,255,106,0.4); z-index: 1; }
 .mileageBarLabel { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--text-dim); flex-shrink: 0; }
+.mileageBarDate { font-family: 'DM Mono', monospace; font-size: 8px; color: var(--text-dim); flex-shrink: 0; opacity: 0.7; white-space: nowrap; }
 .mileageBarLabelCurrent { color: var(--accent); font-weight: 600; }
 .mileageLegend { display: flex; gap: 16px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); }
 .legendSwatch { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
