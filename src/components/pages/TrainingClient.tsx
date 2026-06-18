@@ -551,7 +551,6 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                     })}
                   </div>
                 </div>
-                </div>
                 <div className={styles.mileageLegend}>
                   <div className={styles.legendItem}><div className={styles.legendSwatch} style={{background:'var(--accent)'}}/>Logged</div>
                   <div className={styles.legendItem}><div className={styles.legendSwatch} style={{background:'var(--border)'}}/>Planned</div>
