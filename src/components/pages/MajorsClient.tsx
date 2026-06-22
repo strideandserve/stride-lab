@@ -113,35 +113,41 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
           <div className={styles.gauntletTitle}>MAJOR MARATHON GAUNTLET</div>
           <div className={styles.gauntletSub}>
             {stonesEarned === 0 && 'Complete a World Major to earn your first stone.'}
-            {stonesEarned > 0 && stonesEarned < 7 && `${stonesEarned} of 7 Majors completed`}
-            {stonesEarned === 7 && '⚡ ALL 7 MAJORS COMPLETED — INFINITY ACHIEVED'}
+            {stonesEarned > 0 && stonesEarned < 8 && `${stonesEarned} of 8 Majors completed`}
+            {stonesEarned === 8 && '⚡ ALL 8 MAJORS COMPLETED — INFINITY ACHIEVED'}
           </div>
           <div className={styles.gauntletStones}>
-            {MAJORS.map(major => {
-              const stone = STONE_COLORS[major.id]
-              const completed = completedIds.has(major.id)
-              const planned   = plannedIds.has(major.id)
-              return (
-                <div key={major.id} className={styles.stoneSlot} title={`${major.flag} ${major.name}${completed?' — Completed':planned?' — Planned':''}`}>
-                  <div
-                    className={`${styles.stone} ${completed ? styles.stoneEarned : planned ? styles.stonePlanned : styles.stoneEmpty}`}
-                    style={completed ? {
-                      background: `radial-gradient(circle at 35% 35%, #fff 0%, ${stone.gem} 40%, #000 100%)`,
-                      boxShadow: `0 0 18px ${stone.glow}, 0 0 40px ${stone.glow}`,
-                    } : planned ? {
-                      background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3) 0%, ${stone.gem}55 40%, #00000088 100%)`,
-                      boxShadow: `0 0 6px ${stone.glow}44`,
-                    } : {}}
-                  />
-                  <div className={`${styles.stoneLabel} ${completed?styles.stoneLabelEarned:planned?styles.stoneLabelPlanned:''}`}>
-                    {major.flag}
+            {(() => {
+              const completed = MAJORS.filter(m => completedIds.has(m.id))
+              const planned   = MAJORS.filter(m => !completedIds.has(m.id) && plannedIds.has(m.id))
+              const remaining = MAJORS.filter(m => !completedIds.has(m.id) && !plannedIds.has(m.id))
+                .sort((a, b) => a.city.localeCompare(b.city))
+              return [...completed, ...planned, ...remaining].map(major => {
+                const stone = STONE_COLORS[major.id]
+                const isCompleted = completedIds.has(major.id)
+                const isPlanned   = plannedIds.has(major.id)
+                return (
+                  <div key={major.id} className={styles.stoneSlot} title={`${major.flag} ${major.name}${isCompleted?' — Completed':isPlanned?' — Planned':''}`}>
+                    <div
+                      className={`${styles.stone} ${isCompleted ? styles.stoneEarned : isPlanned ? styles.stonePlanned : styles.stoneEmpty}`}
+                      style={isCompleted ? {
+                        background: `radial-gradient(circle at 35% 35%, #fff 0%, ${stone.gem} 40%, #000 100%)`,
+                        boxShadow: `0 0 18px ${stone.glow}, 0 0 40px ${stone.glow}`,
+                      } : isPlanned ? {
+                        background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3) 0%, ${stone.gem}55 40%, #00000088 100%)`,
+                        boxShadow: `0 0 6px ${stone.glow}44`,
+                      } : {}}
+                    />
+                    <div className={`${styles.stoneLabel} ${isCompleted?styles.stoneLabelEarned:isPlanned?styles.stoneLabelPlanned:''}`}>
+                      {major.flag}
+                    </div>
+                    <div className={styles.stoneCity}>{major.city}</div>
+                    {isPlanned && !isCompleted && <div className={styles.stonePendingBadge}>Planned</div>}
+                    {isCompleted && <div className={styles.stoneCompleteBadge}>✓</div>}
                   </div>
-                  <div className={styles.stoneCity}>{major.city}</div>
-                  {planned && !completed && <div className={styles.stonePendingBadge}>Planned</div>}
-                  {completed && <div className={styles.stoneCompleteBadge}>✓</div>}
-                </div>
-              )
-            })}
+                )
+              })
+            })()}
           </div>
           <div className={styles.gauntletLegend}>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'var(--accent)',boxShadow:'0 0 8px var(--accent)'}}/>Completed</div>
@@ -213,7 +219,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
       <div className={styles.titleRow}>
         <div className={styles.title}>WORLD<br/>MARATHON<br/>MAJORS</div>
         <div className={styles.titleMeta}>
-          <div className={styles.starCount}>⭐ 7 Majors · 2026 Season</div>
+          <div className={styles.starCount}>⭐ 8 Majors · 2026 Season</div>
           {nextLottery && (
             <div className={styles.nextLotteryAlert}>
               <div className={styles.nextLotteryLabel}>Next Lottery Opens</div>

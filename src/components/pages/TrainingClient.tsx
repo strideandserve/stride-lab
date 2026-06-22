@@ -352,6 +352,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
               {plans.map(p => <option key={p.id} value={p.id}>{p.name}{p.active?' (Active)':''}</option>)}
             </select>
           )}
+          <Btn variant="ghost" onClick={()=>router.push('/app/training/zones')}>📊 Run Types</Btn>
           <Btn variant="primary" onClick={openAddPlan}>+ New Plan</Btn>
         </div>
       </div>
@@ -455,7 +456,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                             <div className={styles.prActions}>
                               {!isLogged && <button className={styles.prLogBtn} onClick={()=>openLogRun(pr)} title="Log new run">✓</button>}
                               {!isLogged && <button className={styles.prLinkBtn} onClick={()=>openLinkRun(pr)} title="Link existing run">🔗</button>}
-                              <button className={styles.prEditBtn} onClick={()=>openEditRun(pr)} title="Edit">✏</button>
+                              <button className={styles.prEditBtn} onClick={()=>openEditRun(pr)} title="Edit planned run">✏️</button>
                               <button className={styles.prDelBtn} onClick={()=>deletePlannedRun(pr.id)} title="Delete">✕</button>
                             </div>
                           </div>
