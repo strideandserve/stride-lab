@@ -17,12 +17,13 @@ interface Props {
   runs: Run[]
   goalMarathonPace: string | null
   maxHr: number | null
+  ltPace: string | null
 }
 
 const RUN_TYPES: RunType[] = ['recovery','recovery_strides','gen_aerobic','med_long','lt_run','tempo','long_run','speed_intervals']
 const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 
-export default function TrainingClient({ plans, plannedRuns, shoes, runs, goalMarathonPace, maxHr }: Props) {
+export default function TrainingClient({ plans, plannedRuns, shoes, runs, goalMarathonPace, maxHr, ltPace }: Props) {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const weekParam    = searchParams ? parseInt(searchParams.get('week') || '0') : 0
@@ -36,6 +37,24 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs, goalMa
     const parts = goalMarathonPace.split(':').map(Number)
     return parts.length === 2 ? parts[0]*60 + parts[1] : null
   })() : null
+
+  // Parse stored LT pace (format: "7:15" = 7:15/mi)
+  const ltPaceSecs = ltPace ? (() => {
+    const parts = ltPace.split(':').map(Number)
+    return parts.length === 2 ? parts[0]*60 + parts[1] : null
+  })() : null
+
+  // LT run breakdown: 25–30 min at LT pace = X miles core effort,
+  // remainder of planned miles run at gen aerobic pace (~warm-up/cool-down)
+  function getLtBreakdown(totalMiles: number): { ltMiles: [number,number]; warmCoolMiles: [number,number] } | null {
+    if (!ltPaceSecs) return null
+    // 25 min and 30 min at LT pace = how many miles?
+    const ltMin = Math.round((25 / 60) * (3600 / ltPaceSecs) * 100) / 100  // 25 min at LT pace
+    const ltMax = Math.round((30 / 60) * (3600 / ltPaceSecs) * 100) / 100  // 30 min at LT pace
+    const remainMin = Math.max(0, totalMiles - ltMax)
+    const remainMax = Math.max(0, totalMiles - ltMin)
+    return { ltMiles: [ltMin, ltMax], warmCoolMiles: [remainMin, remainMax] }
+  }
 
   function getZonePaceRange(runType: string): { min: string; max: string } | null {
     if (!goalPaceSecs) return null
@@ -555,10 +574,23 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs, goalMa
                               )
                             }
 
-                            // LT/Tempo — show manual target pace if set, else prompt
+                            // LT/Tempo — use stored lt_pace, show breakdown
                             if (pr.run_type === 'lt_run' || pr.run_type === 'tempo') {
-                              if (pr.target_pace) return <div className={styles.prTargetPace}>🎯 {pr.target_pace}/mi (LT)</div>
-                              return <div className={styles.prTargetPace} style={{color:'var(--text-dim)'}}>Set LT pace in Run Types ↗</div>
+                              if (!ltPaceSecs) {
+                                return <div className={styles.prTargetPace} style={{color:'var(--text-dim)'}}>Set LT pace in Run Types ↗</div>
+                              }
+                              const fmt = (s: number) => `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`
+                              const breakdown = getLtBreakdown(pr.planned_miles)
+                              return (
+                                <div className={styles.prTargetPace}>
+                                  🎯 {fmt(ltPaceSecs)}/mi (LT · 25–30 min)
+                                  {breakdown && (
+                                    <div style={{fontSize:9,color:'var(--text-dim)',marginTop:2}}>
+                                      ~{breakdown.ltMiles[0].toFixed(1)}–{breakdown.ltMiles[1].toFixed(1)} mi hard · {breakdown.warmCoolMiles[0].toFixed(1)}–{breakdown.warmCoolMiles[1].toFixed(1)} mi easy
+                                    </div>
+                                  )}
+                                </div>
+                              )
                             }
 
                             return null
@@ -751,7 +783,23 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs, goalMa
                 const range = getZonePaceRange(prType)
                 const hr    = getZoneHrRange(prType)
                 if (prType === 'lt_run' || prType === 'tempo') {
-                  return <span style={{color:'var(--text-dim)'}}>Set in Run Types page</span>
+                  if (!ltPaceSecs) {
+                    return <span style={{color:'var(--text-dim)'}}>Set LT pace in Run Types page</span>
+                  }
+                  const fmt = (s: number) => `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`
+                  const miles = parseFloat(prMiles) || 0
+                  const breakdown = miles > 0 ? getLtBreakdown(miles) : null
+                  return (
+                    <>
+                      <span style={{color:'var(--accent)'}}>{fmt(ltPaceSecs)}</span>
+                      <span style={{color:'var(--text-dim)'}}> /mi · 25–30 min at LT</span>
+                      {breakdown && (
+                        <span style={{color:'var(--text-dim)',fontSize:9,display:'block',marginTop:2}}>
+                          ~{breakdown.ltMiles[0].toFixed(1)}–{breakdown.ltMiles[1].toFixed(1)} mi hard · {breakdown.warmCoolMiles[0].toFixed(1)}–{breakdown.warmCoolMiles[1].toFixed(1)} mi easy/aerobic
+                        </span>
+                      )}
+                    </>
+                  )
                 }
                 if (!range) return <span style={{color:'var(--text-dim)'}}>Set goal time in Run Types</span>
                 return (
@@ -767,13 +815,7 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs, goalMa
             </div>
           </FormGroup>
         </FormRow>
-        {/* Keep a notes-style LT pace field for LT/Tempo runs */}
-        {(prType === 'lt_run' || prType === 'tempo') && (
-          <FormGroup>
-            <FormLabel>Target Pace (LT — min/mi)</FormLabel>
-            <FormInput type="text" inputMode="numeric" placeholder="7:15" value={prTargetPace} onChange={e=>setPrTargetPace(formatPaceInput(e.target.value))}/>
-          </FormGroup>
-        )}
+        {/* LT/Tempo runs: no manual pace needed — pulled from profile */}
         <FormGroup>
           <FormLabel>Shoe</FormLabel>
           <FormSelect value={prShoe} onChange={e=>setPrShoe(e.target.value)}>

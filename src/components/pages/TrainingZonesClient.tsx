@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { formatPaceInput, formatTimeInput } from '@/lib/utils'
+import { formatPaceInput, formatTimeInput, RUN_TYPE_COLORS } from '@/lib/utils'
 import styles from './TrainingZonesClient.module.css'
 
 // ── RUN TYPE DEFINITIONS ──
@@ -163,7 +163,7 @@ function paceToSecs(pace: string): number | null {
   return parts[0] * 60 + parts[1]
 }
 
-interface Props { initialGoalPace: string; initialMaxHr: number | null; userId: string }
+interface Props { initialGoalPace: string; initialMaxHr: number | null; initialLtPace: string; userId: string }
 
 // Convert a finish time string (H:MM:SS or M:SS) to per-mile pace seconds
 function goalTimeToPaceSecs(timeStr: string): number | null {
@@ -174,12 +174,11 @@ function goalTimeToPaceSecs(timeStr: string): number | null {
   else if (parts.length === 2) totalSecs = parts[0]*60 + parts[1]
   else return null
   if (totalSecs <= 0) return null
-  return Math.round(totalSecs / 26.2188) // marathon is 26.2188 miles
+  return Math.round(totalSecs / 26.2188)
 }
 
-export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, userId }: Props) {
+export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, initialLtPace, userId }: Props) {
   const supabase = createClient()
-  // Convert stored goal pace back to approximate finish time for display
   const initGoalTime = (() => {
     if (!initialGoalPace) return ''
     const parts = initialGoalPace.split(':').map(Number)
@@ -192,14 +191,12 @@ export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, use
   })()
   const [goalTime, setGoalTime] = useState(initGoalTime)
   const [maxHr, setMaxHr] = useState(initialMaxHr ? String(initialMaxHr) : '')
-  const [ltPace, setLtPace] = useState('')
+  const [ltPace, setLtPace] = useState(initialLtPace)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const goalSecs = goalTimeToPaceSecs(goalTime)  // per-mile pace in seconds
+  const goalSecs = goalTimeToPaceSecs(goalTime)
   const maxHrNum = maxHr ? parseInt(maxHr) : null
-
-  // Derived pace string for display
   const goalPaceDisplay = goalSecs ? secsToMmSs(goalSecs) + ' /mi' : null
 
   async function save() {
@@ -208,6 +205,7 @@ export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, use
     await supabase.from('profiles').update({
       goal_marathon_pace: derivedPace,
       max_hr: maxHrNum || null,
+      lt_pace: ltPace.trim() || null,
     }).eq('id', userId)
     setSaving(false)
     setSaved(true)
@@ -312,7 +310,10 @@ export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, use
                   const isSpeed = rt.id === 'speed_intervals'
                   return (
                     <tr key={rt.id} className={isLt ? styles.rowHighlight : isSpeed ? styles.rowSpeed : ''}>
-                      <td className={styles.tdLabel}>{rt.label}</td>
+                      <td className={styles.tdLabel}>
+                        <span className={styles.tdColorDot} style={{background: RUN_TYPE_COLORS[rt.id] || 'var(--accent)'}}/>
+                        {rt.label}
+                      </td>
                       <td className={styles.tdPace}>{paceRange}</td>
                       <td className={styles.tdHr}>{hrRange}</td>
                     </tr>
@@ -347,9 +348,9 @@ export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, use
           })()
 
           return (
-            <div key={rt.id} className={styles.zoneCard}>
+            <div key={rt.id} className={styles.zoneCard} style={{borderTopColor: RUN_TYPE_COLORS[rt.id] || 'var(--accent)', borderTopWidth: 3}}>
               <div className={styles.zoneCardHeader}>
-                <div className={styles.zoneCardName}>{rt.label}</div>
+                <div className={styles.zoneCardName} style={{color: RUN_TYPE_COLORS[rt.id] || 'var(--text)'}}>{rt.label}</div>
                 <div className={styles.zoneCardTagline}>{rt.tagline}</div>
               </div>
 

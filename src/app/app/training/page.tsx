@@ -11,7 +11,7 @@ export default async function TrainingPage() {
     supabase.from('planned_runs').select('*').eq('user_id', session!.user.id).order('date'),
     supabase.from('shoes').select('*').eq('user_id', session!.user.id),
     supabase.from('runs').select('*').eq('user_id', session!.user.id),
-    supabase.from('profiles').select('goal_marathon_pace, max_hr').eq('id', session!.user.id).single(),
+    supabase.from('profiles').select('goal_marathon_pace, max_hr, lt_pace').eq('id', session!.user.id).single(),
   ])
 
   return (
@@ -22,6 +22,7 @@ export default async function TrainingPage() {
       runs={runs ?? []}
       goalMarathonPace={profileRow?.goal_marathon_pace ?? null}
       maxHr={profileRow?.max_hr ?? null}
+      ltPace={profileRow?.lt_pace ?? null}
     />
   )
 }

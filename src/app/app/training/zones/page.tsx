@@ -8,7 +8,7 @@ export default async function TrainingZonesPage() {
 
   const { data: profileRow } = await supabase
     .from('profiles')
-    .select('goal_marathon_pace, max_hr')
+    .select('goal_marathon_pace, max_hr, lt_pace')
     .eq('id', session!.user.id)
     .single()
 
@@ -16,6 +16,7 @@ export default async function TrainingZonesPage() {
     <TrainingZonesClient
       initialGoalPace={profileRow?.goal_marathon_pace ?? ''}
       initialMaxHr={profileRow?.max_hr ?? null}
+      initialLtPace={profileRow?.lt_pace ?? ''}
       userId={session!.user.id}
     />
   )
