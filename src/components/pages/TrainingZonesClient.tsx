@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
-import { formatPaceInput } from '@/lib/utils'
+import { formatPaceInput, formatTimeInput } from '@/lib/utils'
 import styles from './TrainingZonesClient.module.css'
 
 // ── RUN TYPE DEFINITIONS ──
@@ -165,21 +165,48 @@ function paceToSecs(pace: string): number | null {
 
 interface Props { initialGoalPace: string; initialMaxHr: number | null; userId: string }
 
+// Convert a finish time string (H:MM:SS or M:SS) to per-mile pace seconds
+function goalTimeToPaceSecs(timeStr: string): number | null {
+  const parts = timeStr.split(':').map(Number)
+  if (parts.some(isNaN)) return null
+  let totalSecs: number
+  if (parts.length === 3) totalSecs = parts[0]*3600 + parts[1]*60 + parts[2]
+  else if (parts.length === 2) totalSecs = parts[0]*60 + parts[1]
+  else return null
+  if (totalSecs <= 0) return null
+  return Math.round(totalSecs / 26.2188) // marathon is 26.2188 miles
+}
+
 export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, userId }: Props) {
   const supabase = createClient()
-  const [goalPace, setGoalPace] = useState(initialGoalPace)
+  // Convert stored goal pace back to approximate finish time for display
+  const initGoalTime = (() => {
+    if (!initialGoalPace) return ''
+    const parts = initialGoalPace.split(':').map(Number)
+    if (parts.length !== 2) return ''
+    const totalSecs = (parts[0]*60 + parts[1]) * 26.2188
+    const h = Math.floor(totalSecs / 3600)
+    const m = Math.floor((totalSecs % 3600) / 60)
+    const s = Math.round(totalSecs % 60)
+    return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+  })()
+  const [goalTime, setGoalTime] = useState(initGoalTime)
   const [maxHr, setMaxHr] = useState(initialMaxHr ? String(initialMaxHr) : '')
   const [ltPace, setLtPace] = useState('')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const goalSecs = paceToSecs(goalPace)
+  const goalSecs = goalTimeToPaceSecs(goalTime)  // per-mile pace in seconds
   const maxHrNum = maxHr ? parseInt(maxHr) : null
+
+  // Derived pace string for display
+  const goalPaceDisplay = goalSecs ? secsToMmSs(goalSecs) + ' /mi' : null
 
   async function save() {
     setSaving(true)
+    const derivedPace = goalSecs ? secsToMmSs(goalSecs) : null
     await supabase.from('profiles').update({
-      goal_marathon_pace: goalPace || null,
+      goal_marathon_pace: derivedPace,
       max_hr: maxHrNum || null,
     }).eq('id', userId)
     setSaving(false)
@@ -199,16 +226,19 @@ export default function TrainingZonesClient({ initialGoalPace, initialMaxHr, use
         <div className={styles.inputCardTitle}>Your Training Parameters</div>
         <div className={styles.inputRow}>
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>Goal Marathon Pace (min/mi)</label>
+            <label className={styles.inputLabel}>Goal Marathon Time (H:MM:SS)</label>
             <input
               className={styles.input}
               type="text"
               inputMode="numeric"
-              placeholder="6:50"
-              value={goalPace}
-              onChange={e => setGoalPace(formatPaceInput(e.target.value))}
+              placeholder="2:50:00"
+              value={goalTime}
+              onChange={e => setGoalTime(formatTimeInput(e.target.value))}
             />
-            <div className={styles.inputHint}>Your target race pace for your goal marathon</div>
+            <div className={styles.inputHint}>
+              Your goal finish time for the marathon
+              {goalPaceDisplay && <span style={{color:'var(--accent)'}}> → {goalPaceDisplay} avg pace</span>}
+            </div>
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.inputLabel}>Max Heart Rate (bpm)</label>

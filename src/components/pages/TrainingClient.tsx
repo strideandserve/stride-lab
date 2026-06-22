@@ -15,18 +15,73 @@ interface Props {
   plannedRuns: PlannedRun[]
   shoes: Shoe[]
   runs: Run[]
+  goalMarathonPace: string | null
+  maxHr: number | null
 }
 
 const RUN_TYPES: RunType[] = ['recovery','recovery_strides','gen_aerobic','med_long','lt_run','tempo','long_run','speed_intervals']
 const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
 
-export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Props) {
+export default function TrainingClient({ plans, plannedRuns, shoes, runs, goalMarathonPace, maxHr }: Props) {
   const router       = useRouter()
   const searchParams = useSearchParams()
   const weekParam    = searchParams ? parseInt(searchParams.get('week') || '0') : 0
   const supabase = createClient()
   const [, startTransition] = useTransition()
   const refresh  = () => startTransition(() => router.refresh())
+
+  // ── TRAINING ZONE PACE RANGES (derived from goal marathon pace + run type)
+  // Based on Jack Daniels' Running Formula zones as specified.
+  const goalPaceSecs = goalMarathonPace ? (() => {
+    const parts = goalMarathonPace.split(':').map(Number)
+    return parts.length === 2 ? parts[0]*60 + parts[1] : null
+  })() : null
+
+  function getZonePaceRange(runType: string): { min: string; max: string } | null {
+    if (!goalPaceSecs) return null
+    const g = goalPaceSecs
+    const fmt = (s: number) => `${Math.floor(s/60)}:${String(Math.round(s%60)).padStart(2,'0')}`
+    switch(runType) {
+      case 'recovery':
+      case 'recovery_strides':
+        return { min: fmt(Math.round(g*1.30)), max: fmt(Math.round(g*1.40)) }
+      case 'gen_aerobic':
+        return { min: fmt(Math.round(g*1.15)), max: fmt(Math.round(g*1.25)) }
+      case 'med_long':
+      case 'long_run':
+        return { min: fmt(Math.round(g*1.10)), max: fmt(Math.round(g*1.20)) }
+      case 'speed_intervals':
+        return { min: fmt(Math.round(g*0.88)), max: fmt(Math.round(g*0.92)) }
+      // LT/tempo pace is user-defined — can't auto-calculate from marathon pace
+      case 'lt_run':
+      case 'tempo':
+        return null
+      default:
+        return { min: fmt(g), max: fmt(g) } // marathon pace runs
+    }
+  }
+
+  function getZoneHrRange(runType: string): { min: number; max: number } | null {
+    if (!maxHr) return null
+    const m = maxHr
+    switch(runType) {
+      case 'recovery':
+      case 'recovery_strides':
+        return { min: 0, max: Math.round(m*0.75) }
+      case 'gen_aerobic':
+        return { min: Math.round(m*0.72), max: Math.round(m*0.80) }
+      case 'med_long':
+      case 'long_run':
+        return { min: Math.round(m*0.75), max: Math.round(m*0.83) }
+      case 'lt_run':
+      case 'tempo':
+        return { min: Math.round(m*0.83), max: Math.round(m*0.90) }
+      case 'speed_intervals':
+        return { min: Math.round(m*0.95), max: m }
+      default: // marathon pace
+        return { min: Math.round(m*0.74), max: Math.round(m*0.84) }
+    }
+  }
 
   const activePlan = plans.find(p => p.active) ?? plans[0] ?? null
   const activeShoes = shoes.filter(s => !s.retired)
@@ -468,26 +523,45 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
                             )}
                           </div>
 
-                          {/* TARGET PACE + COMPARISON */}
-                          {pr.target_pace && (() => {
-                            const targetSecs = paceToSeconds(pr.target_pace)
+                          {/* ZONE PACE RANGE + ACTUAL COMPARISON */}
+                          {(() => {
+                            const zoneRange = getZonePaceRange(pr.run_type)
+                            const zoneHr    = getZoneHrRange(pr.run_type)
                             const actualSecs = loggedRun?.pace ? paceToSeconds(loggedRun.pace) : null
-                            let paceEl = <div className={styles.prTargetPace}>🎯 {pr.target_pace}/mi</div>
-                            if (actualSecs && targetSecs) {
-                              const diff = actualSecs - targetSecs
-                              const absDiff = Math.abs(diff)
-                              const mins = Math.floor(absDiff / 60)
-                              const secs = Math.round(absDiff % 60)
-                              const diffStr = mins > 0 ? `${mins}:${String(secs).padStart(2,'0')}` : `0:${String(secs).padStart(2,'0')}`
-                              if (diff < -5) {
-                                paceEl = <div className={styles.prPaceFaster}>⚡ {diffStr}/mi faster than target</div>
-                              } else if (diff > 5) {
-                                paceEl = <div className={styles.prPaceSlower}>↓ {diffStr}/mi slower than target</div>
-                              } else {
-                                paceEl = <div className={styles.prPaceOnTarget}>✓ Hit target pace</div>
+
+                            // If we have a logged run, compare actual vs zone range
+                            if (actualSecs && zoneRange) {
+                              const minSecs = paceToSeconds(zoneRange.min + ':00') ?? paceToSeconds(zoneRange.min)
+                              const maxSecs = paceToSeconds(zoneRange.max + ':00') ?? paceToSeconds(zoneRange.max)
+                              if (minSecs && maxSecs) {
+                                if (actualSecs < minSecs - 5) {
+                                  return <div className={styles.prPaceFaster}>⚡ {loggedRun.pace}/mi — faster than zone ({zoneRange.min}–{zoneRange.max})</div>
+                                } else if (actualSecs > maxSecs + 5) {
+                                  return <div className={styles.prPaceSlower}>↓ {loggedRun.pace}/mi — slower than zone ({zoneRange.min}–{zoneRange.max})</div>
+                                } else {
+                                  return <div className={styles.prPaceOnTarget}>✓ On target zone ({zoneRange.min}–{zoneRange.max}/mi)</div>
+                                }
                               }
                             }
-                            return paceEl
+
+                            // No logged run yet — show the zone target
+                            if (zoneRange) {
+                              return (
+                                <div className={styles.prTargetPace}>
+                                  🎯 {zoneRange.min}–{zoneRange.max}/mi
+                                  {zoneHr && pr.run_type === 'recovery' && <span style={{color:'var(--text-dim)'}}> · &lt;{zoneHr.max}bpm</span>}
+                                  {zoneHr && pr.run_type !== 'recovery' && pr.run_type !== 'recovery_strides' && <span style={{color:'var(--text-dim)'}}> · {zoneHr.min}–{zoneHr.max}bpm</span>}
+                                </div>
+                              )
+                            }
+
+                            // LT/Tempo — show manual target pace if set, else prompt
+                            if (pr.run_type === 'lt_run' || pr.run_type === 'tempo') {
+                              if (pr.target_pace) return <div className={styles.prTargetPace}>🎯 {pr.target_pace}/mi (LT)</div>
+                              return <div className={styles.prTargetPace} style={{color:'var(--text-dim)'}}>Set LT pace in Run Types ↗</div>
+                            }
+
+                            return null
                           })()}
                           {shoe && (
                             <div className={styles.prShoe}>
@@ -670,8 +744,36 @@ export default function TrainingClient({ plans, plannedRuns, shoes, runs }: Prop
         </FormGroup>
         <FormRow>
           <FormGroup><FormLabel>Planned Miles</FormLabel><FormInput type="number" step="0.1" placeholder="6.0" value={prMiles} onChange={e=>setPrMiles(e.target.value)}/></FormGroup>
-          <FormGroup><FormLabel>Target Pace (min/mi)</FormLabel><FormInput type="text" inputMode="numeric" placeholder="7:30" value={prTargetPace} onChange={e=>setPrTargetPace(formatPaceInput(e.target.value))}/></FormGroup>
+          <FormGroup>
+            <FormLabel>Pace Zone (auto)</FormLabel>
+            <div className={styles.paceZoneDisplay}>
+              {(() => {
+                const range = getZonePaceRange(prType)
+                const hr    = getZoneHrRange(prType)
+                if (prType === 'lt_run' || prType === 'tempo') {
+                  return <span style={{color:'var(--text-dim)'}}>Set in Run Types page</span>
+                }
+                if (!range) return <span style={{color:'var(--text-dim)'}}>Set goal time in Run Types</span>
+                return (
+                  <>
+                    <span style={{color:'var(--accent)'}}>{range.min}–{range.max}</span>
+                    <span style={{color:'var(--text-dim)'}}> /mi</span>
+                    {hr && <span style={{color:'var(--text-dim)',fontSize:9,display:'block',marginTop:2}}>
+                      {hr.min > 0 ? `${hr.min}–${hr.max}` : `<${hr.max}`} bpm
+                    </span>}
+                  </>
+                )
+              })()}
+            </div>
+          </FormGroup>
         </FormRow>
+        {/* Keep a notes-style LT pace field for LT/Tempo runs */}
+        {(prType === 'lt_run' || prType === 'tempo') && (
+          <FormGroup>
+            <FormLabel>Target Pace (LT — min/mi)</FormLabel>
+            <FormInput type="text" inputMode="numeric" placeholder="7:15" value={prTargetPace} onChange={e=>setPrTargetPace(formatPaceInput(e.target.value))}/>
+          </FormGroup>
+        )}
         <FormGroup>
           <FormLabel>Shoe</FormLabel>
           <FormSelect value={prShoe} onChange={e=>setPrShoe(e.target.value)}>

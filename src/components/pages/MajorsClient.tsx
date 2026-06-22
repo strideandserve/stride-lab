@@ -134,8 +134,10 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
                         background: `radial-gradient(circle at 35% 35%, #fff 0%, ${stone.gem} 40%, #000 100%)`,
                         boxShadow: `0 0 18px ${stone.glow}, 0 0 40px ${stone.glow}`,
                       } : isPlanned ? {
-                        background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.3) 0%, ${stone.gem}55 40%, #00000088 100%)`,
-                        boxShadow: `0 0 6px ${stone.glow}44`,
+                        background: `radial-gradient(circle at 35% 35%, rgba(255,255,255,0.5) 0%, ${stone.gem}cc 40%, ${stone.gem}44 100%)`,
+                        boxShadow: `0 0 16px ${stone.glow}99, 0 0 32px ${stone.glow}44`,
+                        outline: `2px dashed ${stone.gem}cc`,
+                        outlineOffset: '4px',
                       } : {}}
                     />
                     <div className={`${styles.stoneLabel} ${isCompleted?styles.stoneLabelEarned:isPlanned?styles.stoneLabelPlanned:''}`}>
@@ -151,7 +153,7 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
           </div>
           <div className={styles.gauntletLegend}>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'var(--accent)',boxShadow:'0 0 8px var(--accent)'}}/>Completed</div>
-            <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'rgba(255,255,255,0.15)',border:'1px dashed rgba(255,255,255,0.3)'}}/>Planned</div>
+            <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'rgba(255,255,255,0.25)',border:'1.5px dashed rgba(255,255,255,0.7)'}}/>Planned</div>
             <div className={styles.legendItem}><div className={styles.legendDot} style={{background:'var(--surface2)',border:'1px solid var(--border)'}}/>Not yet</div>
           </div>
         </div>
@@ -181,12 +183,17 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
               const plan  = plannedIds.has(major.id)
               return (
                 <g key={i}>
-                  <ellipse cx={63 + i*26} cy={148} rx="9" ry="7" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1"/>
+                  <ellipse cx={63 + i*26} cy={148} rx="9" ry="7"
+                    fill={done ? stone.gem : plan ? stone.gem+'aa' : '#3a3000'}
+                    stroke={done ? '#fff' : plan ? stone.gem : '#5a4a0a'}
+                    strokeWidth={plan ? '1.5' : '1'}
+                    strokeDasharray={plan ? '2 1' : undefined}
+                  />
                   {done && <ellipse cx={61 + i*26} cy={146} rx="4" ry="3" fill="rgba(255,255,255,0.5)"/>}
                 </g>
               )
             })}
-            {/* Back of hand center stone */}
+            {/* Back of hand center stone — Chicago */}
             {(() => {
               const major = MAJORS.find(m => m.id === 'chicago')!
               const stone = STONE_COLORS[major.id]
@@ -194,21 +201,32 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
               const plan  = plannedIds.has(major.id)
               return (
                 <g>
-                  <ellipse cx="100" cy="172" rx="16" ry="12" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1.5"/>
+                  <ellipse cx="100" cy="172" rx="16" ry="12"
+                    fill={done ? stone.gem : plan ? stone.gem+'aa' : '#3a3000'}
+                    stroke={done ? '#fff' : plan ? stone.gem : '#5a4a0a'}
+                    strokeWidth={plan ? '2' : '1.5'}
+                    strokeDasharray={plan ? '3 1.5' : undefined}
+                  />
                   {done && <ellipse cx="95" cy="168" rx="7" ry="5" fill="rgba(255,255,255,0.5)"/>}
                 </g>
               )
             })()}
-            {/* Wrist stones — tokyo, nyc, cape town */}
+            {/* Wrist stones — tokyo, nyc, capetown — spread across wrist band x=70–130 */}
             {['tokyo','nyc','capetown'].map((id, i) => {
               const major = MAJORS.find(m => m.id === id)!
               const stone = STONE_COLORS[major.id]
               const done  = completedIds.has(major.id)
               const plan  = plannedIds.has(major.id)
+              const cx = 72 + i * 28  // 72, 100, 128 — evenly spaced within wrist band
               return (
                 <g key={i}>
-                  <ellipse cx={68 + i*32} cy={210} rx="10" ry="8" fill={done ? stone.gem : plan ? stone.gem+'66' : '#5a4a0a'} stroke={done?'#fff':'#8a7020'} strokeWidth="1.2"/>
-                  {done && <ellipse cx={65 + i*32} cy={207} rx="4" ry="3" fill="rgba(255,255,255,0.5)"/>}
+                  <ellipse cx={cx} cy={218} rx="10" ry="7"
+                    fill={done ? stone.gem : plan ? stone.gem+'aa' : '#3a3000'}
+                    stroke={done ? '#fff' : plan ? stone.gem : '#5a4a0a'}
+                    strokeWidth={plan ? '1.5' : '1.2'}
+                    strokeDasharray={plan ? '2 1' : undefined}
+                  />
+                  {done && <ellipse cx={cx - 2} cy={216} rx="4" ry="3" fill="rgba(255,255,255,0.5)"/>}
                 </g>
               )
             })}

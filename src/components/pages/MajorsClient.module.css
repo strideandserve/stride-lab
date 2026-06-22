@@ -48,8 +48,13 @@
   animation: stonePulse 3s ease-in-out infinite alternate;
 }
 .stonePlanned {
-  filter: blur(1px);
-  opacity: 0.55;
+  filter: none;
+  opacity: 0.9;
+  animation: stonePulsePlanned 2s ease-in-out infinite alternate;
+}
+@keyframes stonePulsePlanned {
+  from { opacity: 0.75; }
+  to   { opacity: 1; }
 }
 .stoneEmpty {
   background: #1a1500;

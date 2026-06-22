@@ -176,3 +176,18 @@
 .trendArrow { font-size: 18px; color: var(--text-dim); flex-shrink: 0; }
 .trendMethodology { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-dim); line-height: 1.6; }
 .trendMethodology strong { color: var(--text-muted); }
+
+/* PACE ZONE DISPLAY IN MODAL */
+.paceZoneDisplay {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  min-height: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px;
+}
