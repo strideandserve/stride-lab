@@ -1,0 +1,47 @@
+.wrap { padding: 40px 40px 100px; max-width: 900px; }
+@media (max-width: 768px) { .wrap { padding: 24px 16px 100px; } }
+
+.back { background: none; border: 1px solid var(--border); border-radius: 8px; color: var(--text-muted); font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.5px; padding: 8px 14px; cursor: pointer; margin-bottom: 32px; transition: all 0.2s; }
+.back:hover { border-color: var(--accent); color: var(--accent); }
+
+.header { display: flex; align-items: center; gap: 20px; border-left: 4px solid var(--accent); padding-left: 20px; margin-bottom: 12px; }
+.flag { font-size: 48px; flex-shrink: 0; }
+.title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px, 6vw, 60px); letter-spacing: 1px; line-height: 1; }
+.subtitle { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.5px; }
+
+.tagline { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-bottom: 40px; }
+
+/* SECTIONS */
+.section { margin-bottom: 48px; }
+.sectionTitle { font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px; margin-bottom: 20px; color: var(--text); }
+
+/* ENTRY CARDS */
+.entryGrid { display: flex; flex-direction: column; gap: 14px; }
+.entryCard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.2s; }
+.entryCard:hover { border-color: rgba(57,255,106,0.2); }
+.entryCardTop { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.entryName { font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.guaranteedBadge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--accent); background: rgba(57,255,106,0.1); border: 1px solid rgba(57,255,106,0.25); border-radius: 6px; padding: 4px 10px; flex-shrink: 0; white-space: nowrap; }
+.notGuaranteedBadge { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; flex-shrink: 0; white-space: nowrap; }
+.entryDesc { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); line-height: 1.8; }
+.entryLink { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.5px; color: var(--text-dim); text-decoration: none; transition: color 0.2s; align-self: flex-start; }
+.entryLink:hover { color: var(--accent); }
+
+/* CHARITY STATS */
+.charityStats { display: flex; gap: 24px; flex-wrap: wrap; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; }
+.charityStat {}
+.charityStatVal { font-family: 'Bebas Neue', sans-serif; font-size: 32px; color: var(--accent); line-height: 1; }
+.charityStatLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; margin-top: 4px; }
+
+/* CHARITY CARD */
+.charityCard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px 22px; display: flex; flex-direction: column; gap: 16px; }
+.charitySection {}
+.charityLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.charityText { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); line-height: 1.8; }
+.charityLink { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.5px; color: var(--text-dim); text-decoration: none; transition: color 0.2s; align-self: flex-start; }
+.charityLink:hover { color: var(--accent); }
+
+/* FOOTER */
+.footer { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.6; padding-top: 24px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.footerLink { color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+.footerLink:hover { color: var(--accent); }

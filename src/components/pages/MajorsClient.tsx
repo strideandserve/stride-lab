@@ -480,54 +480,12 @@ function MajorCard({ major, age, gender, marathonPR, upcoming, entered, onToggle
         Official Entry Site ↗
       </a>
 
-      {/* ALTERNATIVE ENTRY METHODS */}
-      {major.alternativeEntries.length > 0 && (
-        <div className={styles.altEntriesSection}>
-          <div className={styles.altEntriesTitle}>Other Ways In</div>
-          <div className={styles.altEntriesList}>
-            {major.alternativeEntries.map((alt, i) => (
-              <div key={i} className={styles.altEntry}>
-                <div className={styles.altEntryHeader}>
-                  <div className={styles.altEntryName}>{alt.name}</div>
-                  {alt.guaranteed && <div className={styles.altEntryGuaranteed}>⚡ Guaranteed</div>}
-                </div>
-                <div className={styles.altEntryDesc}>{alt.description}</div>
-                <a href={alt.learnMoreUrl} target="_blank" rel="noopener noreferrer" className={styles.altEntryLink}>Learn more ↗</a>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* CHARITY INFO */}
-      {major.charity && (
-        <div className={styles.charitySection}>
-          <div className={styles.charityTitle}>🎗 Run for Charity</div>
-          <div className={styles.charityStats}>
-            {major.charity.spotsApprox && (
-              <div className={styles.charityStat}>
-                <div className={styles.charityStatVal}>~{major.charity.spotsApprox.toLocaleString()}</div>
-                <div className={styles.charityStatLabel}>charity spots</div>
-              </div>
-            )}
-            {major.charity.numPartners && (
-              <div className={styles.charityStat}>
-                <div className={styles.charityStatVal}>{major.charity.numPartners}</div>
-                <div className={styles.charityStatLabel}>partner orgs</div>
-              </div>
-            )}
-            {major.charity.minFundraisingUSD && (
-              <div className={styles.charityStat}>
-                <div className={styles.charityStatVal}>${major.charity.minFundraisingUSD.toLocaleString()}</div>
-                <div className={styles.charityStatLabel}>min. fundraising (USD)</div>
-              </div>
-            )}
-          </div>
-          <div className={styles.charityNote}>{major.charity.fundraisingNote}</div>
-          <div className={styles.charityNote} style={{marginTop:6}}>{major.charity.applicationNote}</div>
-          <a href={major.charity.learnMoreUrl} target="_blank" rel="noopener noreferrer" className={styles.altEntryLink}>Charity programme ↗</a>
-        </div>
-      )}
+      <button
+        className={styles.otherWaysBtn}
+        onClick={() => window.location.href = `/app/majors/${major.id}`}
+      >
+        Other Ways In ↗
+      </button>
     </div>
   )
 }

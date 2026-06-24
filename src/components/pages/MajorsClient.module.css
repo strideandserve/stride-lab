@@ -290,3 +290,6 @@
 .charityStatVal { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--accent); line-height: 1; }
 .charityStatLabel { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.5px; color: var(--text-dim); text-transform: uppercase; margin-top: 2px; }
 .charityNote { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.6; }
+
+.otherWaysBtn { display: block; width: calc(100% - 36px); margin: 0 18px 16px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 1px; color: var(--accent); background: rgba(57,255,106,0.06); border: 1px solid rgba(57,255,106,0.2); border-radius: 8px; padding: 10px 16px; cursor: pointer; text-align: center; transition: all 0.2s; }
+.otherWaysBtn:hover { background: rgba(57,255,106,0.12); border-color: var(--accent); }
