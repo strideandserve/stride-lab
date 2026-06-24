@@ -269,3 +269,24 @@
   color: var(--accent);
   font-weight: bold;
 }
+
+/* ALTERNATIVE ENTRIES */
+.altEntriesSection { border-top: 1px solid var(--border); padding: 14px 18px 6px; }
+.altEntriesTitle { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); margin-bottom: 10px; }
+.altEntriesList { display: flex; flex-direction: column; gap: 10px; }
+.altEntry { background: var(--surface2); border-radius: 8px; padding: 10px 12px; }
+.altEntryHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.altEntryName { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); font-weight: 600; line-height: 1.3; }
+.altEntryGuaranteed { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.5px; color: var(--accent); white-space: nowrap; flex-shrink: 0; }
+.altEntryDesc { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.6; margin-bottom: 6px; }
+.altEntryLink { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 0.5px; color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+.altEntryLink:hover { color: var(--accent); }
+
+/* CHARITY SECTION */
+.charitySection { border-top: 1px solid var(--border); padding: 14px 18px 16px; }
+.charityTitle { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.charityStats { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
+.charityStat { text-align: center; }
+.charityStatVal { font-family: 'Bebas Neue', sans-serif; font-size: 20px; color: var(--accent); line-height: 1; }
+.charityStatLabel { font-family: 'DM Mono', monospace; font-size: 8px; letter-spacing: 0.5px; color: var(--text-dim); text-transform: uppercase; margin-top: 2px; }
+.charityNote { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.6; }
