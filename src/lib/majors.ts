@@ -69,7 +69,73 @@ export type AgeGroupTimes = {
   '75+': string
 }
 
-export const MAJORS: MajorMarathon[] = [
+export interface SeriesRace {
+  id: string                    // unique within the series, e.g. 'shamrock_2027'
+  name: string                  // display name
+  distance: string              // e.g. '8K', 'Half Marathon', 'Marathon'
+  date: string                  // YYYY-MM-DD race date
+  registrationOpens: string     // YYYY-MM-DD when reg opens (approximate)
+  registrationNote: string      // human-readable reg timing context
+  registerUrl: string           // direct sign-up link
+  isSeriesQualifier: boolean    // must finish to earn the series reward
+}
+
+export interface RaceSeries {
+  id: string
+  name: string
+  majorId: string               // which major marathon this series feeds into
+  reward: string                // what you get for completing all races
+  rewardYear: number            // which year's marathon you earn entry into
+  description: string
+  seriesUrl: string             // official series info page
+  races: SeriesRace[]
+}
+
+export const RACE_SERIES: RaceSeries[] = [
+  {
+    id: 'chicago_distance_2027',
+    name: 'Bank of America Chicago Distance Series',
+    majorId: 'chicago',
+    reward: 'Guaranteed entry to 2028 Chicago Marathon + exclusive Distance Series medal',
+    rewardYear: 2028,
+    description: 'Complete all three Bank of America races — the Shamrock Shuffle 8K (spring), Chicago 13.1 Half Marathon (summer), and the Chicago Marathon (fall) — in a single calendar year and earn a guaranteed spot in the following year\'s Chicago Marathon. Now in its fourth year, the Distance Series is the most accessible guaranteed-entry path into Chicago: no qualifying time, no fundraising, just finish three iconic Chicago races. Registration for all three events typically opens together each October with early-bird discounted pricing.',
+    seriesUrl: 'https://www.chicagomarathon.com/apply/chicago-distance-series/',
+    races: [
+      {
+        id: 'shamrock_2027',
+        name: 'Bank of America Shamrock Shuffle',
+        distance: '8K',
+        date: '2027-03-21',
+        registrationOpens: '2026-10-01',
+        registrationNote: 'Registration typically opens in early October alongside the marathon application window. Early-bird discount pricing is available for a limited time. First-come, first-served — no lottery.',
+        registerUrl: 'https://www.shamrockshuffle.com/register/8krun/',
+        isSeriesQualifier: true,
+      },
+      {
+        id: 'chicago131_2027',
+        name: 'Bank of America Chicago 13.1',
+        distance: 'Half Marathon',
+        date: '2027-06-06',
+        registrationOpens: '2026-10-01',
+        registrationNote: 'Registration opens each October with the series launch. The 2026 edition sold out — sign up early. First-come, first-served. Early-bird discount pricing available at launch.',
+        registerUrl: 'https://www.chicago13point1.com/sign-up/register/',
+        isSeriesQualifier: true,
+      },
+      {
+        id: 'chicago_marathon_2027',
+        name: 'Bank of America Chicago Marathon',
+        distance: 'Marathon',
+        date: '2027-10-10',
+        registrationOpens: '2026-10-21',
+        registrationNote: 'Chicago Marathon applications open mid-October for a four-week window. You must apply through the lottery or a guaranteed entry path — completing the 2026 Distance Series earns you guaranteed entry without entering the lottery.',
+        registerUrl: 'https://www.chicagomarathon.com/apply/',
+        isSeriesQualifier: true,
+      },
+    ],
+  },
+]
+
+
   {
     id: 'tokyo',
     name: 'Tokyo Marathon',
