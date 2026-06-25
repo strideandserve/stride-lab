@@ -45,6 +45,7 @@ export interface MajorMarathon {
   alternativeEntries: AlternativeEntry[]
   charity: CharityInfo | null
   qualifyingTimes: QualifyingTimes | null
+  qualifyingUrl: string        // direct URL to the qualifying time application page
   qualifyingNotes: string
   entryUrl: string
   guaranteed: boolean
@@ -193,6 +194,7 @@ export const MAJORS: MajorMarathon[] = [
       female: { '18-34':'2:54', '35-39':'2:54', '40-44':'2:54', '45-49':'2:54', '50-54':'2:54', '55-59':'2:54', '60-64':'2:54', '65-69':'2:54', '70-74':'2:54', '75+':'2:54' },
     },
     qualifyingNotes: 'Semi-elite only — 25 overseas spots per gender. Selected fastest-first. For most runners the lottery, charity, or tour operator is the practical path.',
+    qualifyingUrl: 'https://www.marathon.tokyo/en/participants/',
     entryUrl: 'https://www.marathon.tokyo/en/',
     guaranteed: false,
     color: '#e8002d',
@@ -248,6 +250,7 @@ export const MAJORS: MajorMarathon[] = [
       female: { '18-34':'3:25', '35-39':'3:30', '40-44':'3:35', '45-49':'3:45', '50-54':'3:50', '55-59':'4:00', '60-64':'4:20', '65-69':'4:35', '70-74':'4:50', '75+':'5:05' },
     },
     qualifyingNotes: 'Meeting the BQ standard does not guarantee entry — the 2026 cutoff was 4:34 faster than the standard. Aim for at least 5–7 minutes under your BQ. Based on age on race day.',
+    qualifyingUrl: 'https://www.baa.org/races/boston-marathon/qualify',
     entryUrl: 'https://www.baa.org/races/boston-marathon/qualify',
     guaranteed: false,
     color: '#0075bf',
@@ -315,6 +318,7 @@ export const MAJORS: MajorMarathon[] = [
       female: { '18-34':'3:38', '35-39':'3:38', '40-44':'3:43', '45-49':'3:46', '50-54':'3:53', '55-59':'3:58', '60-64':'4:23', '65-69':'4:53', '70-74':'5:35', '75+':'6:10' },
     },
     qualifyingNotes: 'Good For Age — UK residents only. Fastest-first basis, 3,000 places per gender. Based on age when you ran the qualifying time.',
+    qualifyingUrl: 'https://www.londonmarathonevents.co.uk/london-marathon/good-age-entry',
     entryUrl: 'https://www.tcslondonmarathon.com/enter',
     guaranteed: false,
     color: '#0099cc',
@@ -370,6 +374,7 @@ export const MAJORS: MajorMarathon[] = [
       female: { '18-34':'3:13', '35-39':'3:15', '40-44':'3:26', '45-49':'3:38', '50-54':'3:51', '55-59':'4:10', '60-64':'4:27', '65-69':'4:50', '70-74':'5:30', '75+':'6:00' },
     },
     qualifyingNotes: 'Fastest-first within age/gender. Must be achieved on an AIMS-certified course. Unsuccessful qualifiers move into the main ballot. Most forgiving ballot odds of all Majors.',
+    qualifyingUrl: 'https://www.tcssydneymarathon.com/',
     entryUrl: 'https://www.tcssydneymarathon.com/',
     guaranteed: false,
     color: '#008000',
@@ -425,6 +430,7 @@ export const MAJORS: MajorMarathon[] = [
       female: { '18-34':'3:10', '35-39':'3:10', '40-44':'3:10', '45-49':'3:30', '50-54':'3:30', '55-59':'3:30', '60-64':'4:20', '65-69':'4:20', '70-74':'4:20', '75+':'4:20' },
     },
     qualifyingNotes: 'GUARANTEED entry if you meet the qualifying standard — no cutoff, no fastest-first selection. The world\'s fastest marathon course. Submit proof during the lottery window (Sept 25–Nov 6).',
+    qualifyingUrl: 'https://www.bmw-berlin-marathon.com/en/registration/',
     entryUrl: 'https://www.bmw-berlin-marathon.com/en/',
     guaranteed: true,
     color: '#1a3a6b',
@@ -486,6 +492,7 @@ export const MAJORS: MajorMarathon[] = [
       female: { '18-34':'3:20', '35-39':'3:25', '40-44':'3:30', '45-49':'3:40', '50-54':'3:50', '55-59':'3:55', '60-64':'4:15', '65-69':'4:25', '70-74':'4:45', '75+':'5:00' },
     },
     qualifyingNotes: 'GUARANTEED entry with qualifying time — no cutoff, no waiting. Flat, fast course ideal for PRs. Time qualifiers from age 16+.',
+    qualifyingUrl: 'https://www.chicagomarathon.com/apply/',
     entryUrl: 'https://www.chicagomarathon.com/runners/registration/',
     guaranteed: true,
     color: '#003087',
@@ -553,6 +560,7 @@ export const MAJORS: MajorMarathon[] = [
       female: { '18-34':'3:13', '35-39':'3:15', '40-44':'3:26', '45-49':'3:38', '50-54':'3:51', '55-59':'4:10', '60-64':'4:27', '65-69':'4:50', '70-74':'5:30', '75+':'6:00' },
     },
     qualifyingNotes: 'Fastest-first in each age/gender bracket. NYRR 9+1 program (run 9 NYRR races + volunteer once) guarantees entry. Legacy: 15+ finishes earns lifetime entry.',
+    qualifyingUrl: 'https://www.nyrr.org/tcsnycmarathon/runners/entry/2026',
     entryUrl: 'https://www.nyrr.org/tcsnycmarathon',
     guaranteed: false,
     color: '#ff6200',
@@ -605,6 +613,7 @@ export const MAJORS: MajorMarathon[] = [
     },
     qualifyingTimes: null,
     qualifyingNotes: 'Africa\'s first Abbott World Marathon Major, confirmed June 2026. Qualifying time standards for the 2027 inaugural Major edition have not yet been published — check the official site for updates.',
+    qualifyingUrl: 'https://capetownmarathon.com/marathon/',
     entryUrl: 'https://capetownmarathon.com/',
     guaranteed: false,
     color: '#ffb612',

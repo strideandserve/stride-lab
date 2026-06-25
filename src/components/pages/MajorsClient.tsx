@@ -329,7 +329,9 @@ export default function MajorsClient({ profile, races, upcomingRaces }: Props) {
                         <div className={styles.qualNA}>No age-group standard — lottery/charity entry</div>
                       )}
                       <div className={styles.qualNotes}>{major.qualifyingNotes}</div>
-                      <a href={major.entryUrl} target="_blank" rel="noopener noreferrer" className={styles.qualLink}>Apply ↗</a>
+                      <a href={major.qualifyingUrl} target="_blank" rel="noopener noreferrer" className={`${styles.qualLink} ${qualified ? styles.qualLinkAchieved : ''}`}>
+                        {qualified ? '⚡ Apply Now ↗' : 'Apply ↗'}
+                      </a>
                     </div>
                   )
                 })}
