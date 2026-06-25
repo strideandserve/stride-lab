@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { MajorMarathon, RaceSeries } from '@/lib/majors'
@@ -10,8 +10,6 @@ type ProgressMap = Record<string, { signed_up: boolean; finished: boolean; finis
 interface Props {
   major: MajorMarathon
   series: RaceSeries[]
-  seriesProgress: ProgressMap
-  userId: string | null
 }
 
 function formatDate(dateStr: string): string {
@@ -25,13 +23,42 @@ function daysUntil(dateStr: string): number {
   return Math.ceil((target.getTime() - today.getTime()) / 86400000)
 }
 
-export default function MajorDetailClient({ major, series, seriesProgress, userId }: Props) {
+export default function MajorDetailClient({ major, series }: Props) {
   const router = useRouter()
   const supabase = createClient()
-  const [progress, setProgress] = useState<ProgressMap>(seriesProgress)
+  const [progress, setProgress] = useState<ProgressMap>({})
+  const [userId, setUserId] = useState<string | null>(null)
   const [saving, setSaving] = useState<string | null>(null)
   const [editingTime, setEditingTime] = useState<string | null>(null)
   const [timeInput, setTimeInput] = useState('')
+
+  // Fetch user session + series progress on mount
+  useEffect(() => {
+    async function load() {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) return
+      setUserId(session.user.id)
+      if (series.length === 0) return
+      const seriesIds = series.map(s => s.id)
+      const { data } = await supabase
+        .from('race_series_progress')
+        .select('series_id, race_id, signed_up, finished, finish_time')
+        .eq('user_id', session.user.id)
+        .in('series_id', seriesIds)
+      if (data) {
+        const map: ProgressMap = {}
+        data.forEach(row => {
+          map[`${row.series_id}__${row.race_id}`] = {
+            signed_up: row.signed_up,
+            finished: row.finished,
+            finish_time: row.finish_time,
+          }
+        })
+        setProgress(map)
+      }
+    }
+    load()
+  }, [series])
 
   async function updateProgress(seriesId: string, raceId: string, field: 'signed_up' | 'finished', value: boolean) {
     if (!userId) return

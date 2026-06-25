@@ -135,7 +135,7 @@ export const RACE_SERIES: RaceSeries[] = [
   },
 ]
 
-
+export const MAJORS: MajorMarathon[] = [
   {
     id: 'tokyo',
     name: 'Tokyo Marathon',
