@@ -413,7 +413,10 @@ function MajorCard({ major, age, gender, marathonPR, upcoming, entered, onToggle
             <div className={styles.majorLotteryAlert}>🎟 Lottery is open now!</div>
           )}
           {major.lotteryOpens && !lotteryOpen && !lotteryIsOpen && lotteryDays && lotteryDays > 0 && (
-            <div className={styles.majorLotteryDate}>{formatDateShort(major.lotteryOpens)}</div>
+            <div className={styles.majorLotteryDate}>
+              <span>{formatDateShort(major.lotteryOpens)}</span>
+              <span className={styles.majorLotteryDays}> · in {lotteryDays}d</span>
+            </div>
           )}
           <div className={styles.majorOdds}>Odds: {major.lotteryOdds}</div>
         </div>

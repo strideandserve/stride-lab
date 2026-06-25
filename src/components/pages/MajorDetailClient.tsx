@@ -154,7 +154,6 @@ export default function MajorDetailClient({ major, series }: Props) {
                 const key = `${s.id}__${race.id}`
                 const p = progress[key] ?? { signed_up: false, finished: false, finish_time: null }
                 const raceDay = daysUntil(race.date)
-                const regDay = daysUntil(race.registrationOpens)
                 const isPast = raceDay < 0
                 const isEditingThis = editingTime === key
                 const isSaving = saving === key
@@ -194,14 +193,39 @@ export default function MajorDetailClient({ major, series }: Props) {
                         </a>
                       </div>
 
-                      {/* REGISTRATION TIMING */}
-                      <div className={styles.regNote}>
-                        <span className={styles.regNoteLabel}>Registration: </span>
-                        {regDay > 0
-                          ? `Opens ~${formatDate(race.registrationOpens)} (${regDay} days)`
-                          : 'Registration open now'}
-                        {' — '}{race.registrationNote}
-                      </div>
+                      {/* REGISTRATION COUNTDOWN — styled like lottery alert */}
+                      {(() => {
+                        const regDays = daysUntil(race.registrationOpens)
+                        const raceDays = daysUntil(race.date)
+                        const regOpen = regDays <= 0 && raceDays > 0
+                        const raceOver = raceDays < 0
+
+                        if (raceOver) {
+                          return (
+                            <div className={styles.regCountdownBlock} style={{borderColor:'var(--border)'}}>
+                              <div className={styles.regCountdownLabel}>Race Complete</div>
+                              <div className={styles.regCountdownDate}>{formatDate(race.date)}</div>
+                            </div>
+                          )
+                        }
+                        if (regOpen) {
+                          return (
+                            <div className={styles.regCountdownBlock} style={{borderColor:'rgba(57,255,106,0.4)', background:'rgba(57,255,106,0.05)'}}>
+                              <div className={styles.regCountdownLabel}>Registration Open Now</div>
+                              <div className={styles.regCountdownDate}>Race day: {formatDate(race.date)} · {raceDays}d away</div>
+                              <div className={styles.regCountdownDays} style={{color:'var(--accent)'}}>Sign up before it sells out ↗</div>
+                            </div>
+                          )
+                        }
+                        return (
+                          <div className={styles.regCountdownBlock}>
+                            <div className={styles.regCountdownLabel}>Registration Opens</div>
+                            <div className={styles.regCountdownDate}>~{formatDate(race.registrationOpens)}</div>
+                            <div className={styles.regCountdownDays}>in {regDays} days</div>
+                            <div className={styles.regCountdownNote}>{race.registrationNote}</div>
+                          </div>
+                        )
+                      })()}
 
                       {/* CHECKBOXES */}
                       <div className={styles.raceChecks}>

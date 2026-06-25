@@ -45,8 +45,11 @@
 .registerBtn { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.5px; color: var(--accent); background: rgba(57,255,106,0.08); border: 1px solid rgba(57,255,106,0.25); border-radius: 6px; padding: 6px 12px; text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: all 0.2s; }
 .registerBtn:hover { background: rgba(57,255,106,0.15); border-color: var(--accent); }
 
-.regNote { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.6; background: var(--surface2); border-radius: 6px; padding: 8px 12px; }
-.regNoteLabel { color: var(--text-muted); font-weight: 600; }
+.regCountdownBlock { background: var(--surface2); border: 1px solid rgba(57,255,106,0.2); border-radius: 8px; padding: 12px 16px; display: flex; flex-direction: column; gap: 3px; }
+.regCountdownLabel { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); }
+.regCountdownDate { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text-muted); }
+.regCountdownDays { font-family: 'DM Mono', monospace; font-size: 20px; color: var(--accent); font-weight: 700; line-height: 1.1; }
+.regCountdownNote { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.5; margin-top: 4px; }
 
 .raceChecks { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .raceCheck { display: flex; align-items: center; gap: 6px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
