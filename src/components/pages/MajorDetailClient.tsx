@@ -93,6 +93,11 @@ export default function MajorDetailClient({ major }: Props) {
           )}
 
           <div className={styles.charityCard}>
+            {/* DEADLINE — shown first, most actionable info */}
+            <div className={`${styles.charityDeadline} ${styles[`deadline_${major.charity.deadlineUrgency}`]}`}>
+              <div className={styles.charityLabel}>⏱ Application Deadline</div>
+              <div className={styles.charityDeadlineText}>{major.charity.deadline}</div>
+            </div>
             <div className={styles.charitySection}>
               <div className={styles.charityLabel}>How It Works</div>
               <div className={styles.charityText}>{major.charity.fundraisingNote}</div>

@@ -22,6 +22,8 @@ export interface CharityInfo {
   maxFundraisingUSD: number | null
   fundraisingNote: string
   applicationNote: string
+  deadline: string           // When charity spots typically close (human-readable)
+  deadlineUrgency: 'immediate' | 'weeks' | 'months'  // how fast they fill
   learnMoreUrl: string
 }
 
@@ -116,6 +118,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: 1250,
       fundraisingNote: 'Donation minimum is ¥100,000 (~$625 USD) to ¥200,000 (~$1,250 USD) depending on the charity partner. Unlike Western marathons, you pay the full donation upfront — there is no fundraising window. Selection is NOT first-come, first-served; charities prioritize higher donation amounts. Application window is short (~2 weeks in late June).',
       applicationNote: 'Application opens June 24 for the 2027 race. You apply to an individual charity organization through the RUN with HEART program, not the Tokyo Marathon directly. Some charities restrict applications to Japan residents.',
+      deadline: '~2 weeks in late June (window is June 24–July 9). The fastest-closing window of any Major — act the day applications open.',
+      deadlineUrgency: 'immediate',
       learnMoreUrl: 'https://www.marathon.tokyo/en/charity/',
     },
     qualifyingTimes: {
@@ -169,6 +173,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: 15000,
       fundraisingNote: '193 official charity partners for 2026. Charity comprises ~10% of the total 30,000-person field. Minimum fundraising is $5,000 USD (set by the B.A.A.) but individual charities often require $10,000–$15,000. International runners: some charities require $15,000 upfront. No deferrals allowed — Boston is the only Major with no deferral program.',
       applicationNote: 'Apply directly to individual charity partners via the B.A.A. charity index. Each charity runs its own selection process — many include interviews. Applications for 2027 will open in late 2026. High-demand charities fill quickly.',
+      deadline: 'Most charities open applications Oct–Nov and close Jan–Feb. Popular teams fill within days of opening. Apply the moment your target charity opens.',
+      deadlineUrgency: 'immediate',
       learnMoreUrl: 'https://www.baa.org/charities/',
     },
     qualifyingTimes: {
@@ -234,6 +240,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: 5000,
       fundraisingNote: 'London has the largest charity programme of any marathon in the world — roughly 750+ partner charities and approximately 17,000 of the ~59,000 total field running for charity. Minimum fundraising is typically £1,500–£3,000 GBP (~$1,900–$3,800 USD) but varies significantly by charity. Marie Curie is the 2026 Charity of the Year. Large charity teams include Macmillan Cancer Support, British Heart Foundation, Alzheimer\'s Society, NSPCC, and Great Ormond Street Hospital.',
       applicationNote: 'Apply directly through your chosen charity\'s own website. Each charity manages its own spots independently. Many popular charities open applications immediately after ballot results in July and fill within weeks. Charity deferrals are at the charity\'s discretion.',
+      deadline: 'Ballot results announced early July. Most charities open applications immediately after and set individual deadlines — Great Ormond Street closes July 25; others run through Jan 2027. Popular teams fill within days of opening.',
+      deadlineUrgency: 'weeks',
       learnMoreUrl: 'https://www.tcslondonmarathon.com/enter/run-for-charity',
     },
     qualifyingTimes: {
@@ -287,6 +295,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: 5000,
       fundraisingNote: 'Headline charities for 2026 are Running for Premature Babies and the We Run Foundation. Hundreds of additional Australian, New Zealand, and international charity partners are available. Minimum fundraising varies by partner — international charities typically require $3,000–$5,000 USD (e.g. Free to Run requires $4,000 USD); some Australian charities start at $3,000 AUD (~$2,000 USD). International charity page features no-minimum-commitment charities. The best and most forgiving charity landscape of all the Majors.',
       applicationNote: 'Apply through the charity of your choice via charity.tcssydneymarathon.com. International and Australian/NZ charities have separate pages. Applications typically open alongside ballot results. Some charities are first-come, first-served; others have selection processes.',
+      deadline: 'Ballot results mid-November. Charity applications open alongside results. International spots are limited and fill within weeks. Australian charities may accept applications further in advance.',
+      deadlineUrgency: 'weeks',
       learnMoreUrl: 'https://www.charity.tcssydneymarathon.com/',
     },
     qualifyingTimes: {
@@ -340,6 +350,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: 3500,
       fundraisingNote: 'Berlin collects over €2 million for social projects at every race through its charity program. Official charity partners include organizations focused on children, health, sustainability, and social inclusion. The race works with the Berliner Stadtmission (Berlin City Mission) and other Berlin/Brandenburg-based charities. International charities like Achilles International require $3,000 USD minimum fundraising for the 2026 race. Entry fee is included with charity participation.',
       applicationNote: 'Charity entries are published each December for the following year\'s race. Apply through individual charity partner websites. For international runners, Achilles International is a well-known English-language option with guaranteed entry.',
+      deadline: 'Charity partners announced each December. Individual applications typically open Jan–Mar and fill by spring (April–June). Achilles International\'s deadline for 2026 was September 21.',
+      deadlineUrgency: 'months',
       learnMoreUrl: 'https://www.bmw-berlin-marathon.com/en/registration/charity',
     },
     qualifyingTimes: {
@@ -399,6 +411,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: 5000,
       fundraisingNote: 'Chicago has the largest charity programme of any US Major — approximately 10,000 entries (~18% of the 55,000 field). Minimum fundraising is $2,200 USD, set by the race (lower than Boston). Individual charities may require more. Approximately 130 official charity partners. Entries available until September 15 or capacity. The Chicago Marathon raises millions annually for charitable causes and generates over $547 million in annual economic impact for the city.',
       applicationNote: 'Contact your chosen charity directly via the official Charity Index on the Chicago Marathon website. Each charity manages its own team independently. Early applications are encouraged — most charities fill well before the September deadline.',
+      deadline: 'Hard cutoff: September 15 (race year) or when capacity is reached. Many popular charities fill months earlier — December lottery is the best time to pivot to charity if you didn\'t get in.',
+      deadlineUrgency: 'months',
       learnMoreUrl: 'https://www.chicagomarathon.com/apply/',
     },
     qualifyingTimes: {
@@ -464,6 +478,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: 5000,
       fundraisingNote: '~500 NYRR charity partners, with roughly 10,000 charity entries in a field of ~55,000. Minimum fundraising is $3,000–$3,500 USD depending on the charity. A 240,000+ record applicant pool in 2026 (20% increase year-over-year) makes this the hardest NYC entry to win through the ballot, making charity one of the few reliable paths. Teams for Kids (TFK) is NYRR\'s official charity team — register and raise a minimum amount for guaranteed entry plus coaching support.',
       applicationNote: 'Apply through NYRR-partnered charities via nyrr.org. The Teams for Kids program is the flagship option and includes a coach and virtual training platform. Charity applications typically open in March–April each year, following lottery results.',
+      deadline: 'Lottery results announced early March. Individual charity teams set their own deadlines — TeamConcern\'s 2026 deadline was April 9, and spots were gone within weeks of lottery results. Act immediately after the March draw.',
+      deadlineUrgency: 'immediate',
       learnMoreUrl: 'https://www.nyrr.org/tcsnycmarathon',
     },
     qualifyingTimes: {
@@ -517,6 +533,8 @@ export const MAJORS: MajorMarathon[] = [
       maxFundraisingUSD: null,
       fundraisingNote: 'As the newest Major (confirmed June 2026), the Cape Town Marathon\'s charity programme is still maturing. Charity and ITO entries open June 26, 2026 for the 2027 race. The race has a history of charity partnerships through its candidacy years. Two-thirds of the total field are reserved for African participants, which significantly affects international charity spot availability. Check the official site for current partner organizations and fundraising minimums.',
       applicationNote: 'Charity and ITO entries open simultaneously with ballot results on June 26, 2026 at capetownmarathon.com. The race moves quickly — act immediately if you are not selected in the ballot. International spots are limited due to the African-participant field reservation.',
+      deadline: 'Charity entries open June 26, 2026 (same day as ballot results). As the newest Major, timelines are still being established — treat it as immediate and apply the day entries open.',
+      deadlineUrgency: 'immediate',
       learnMoreUrl: 'https://capetownmarathon.com/charities/',
     },
     qualifyingTimes: null,
