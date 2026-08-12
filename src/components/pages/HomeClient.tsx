@@ -4,11 +4,30 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { Shoe, Run, UpcomingRace, TrainingPlan, PlannedRun } from '@/lib/types'
 import { computeCompositeScore, catLabel, CAT_COLORS, raceTypeLabel, RUN_TYPE_LABELS, RUN_TYPE_COLORS, getRaceLogoUrl, getMonday, formatTimeInput } from '@/lib/utils'
+import { MAJORS } from '@/lib/majors'
 import BrandLogo from '@/components/BrandLogo'
 import Modal from '@/components/Modal'
 import { FormGroup, FormLabel, FormInput, FormSelect, FormRow, FormActions, Btn } from '@/components/Form'
 import { toast } from '@/components/Toast'
 import styles from './HomeClient.module.css'
+
+// Detect if a race name matches one of the 8 World Marathon Majors
+function getMajorForRace(raceName: string) {
+  const lower = raceName.toLowerCase()
+  return MAJORS.find(m => {
+    const matchers: Record<string, string[]> = {
+      tokyo:    ['tokyo'],
+      boston:   ['boston'],
+      london:   ['london'],
+      sydney:   ['sydney'],
+      berlin:   ['berlin'],
+      chicago:  ['chicago'],
+      nyc:      ['new york', 'nyc', 'new york city'],
+      capetown: ['cape town', 'capetown'],
+    }
+    return (matchers[m.id] ?? []).some(k => lower.includes(k))
+  }) ?? null
+}
 
 interface Props {
   shoes: Shoe[]
@@ -203,10 +222,13 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
     : null
   const nextShoe = nextWorkout?.shoe_id ? shoes.find(s => s.id === nextWorkout.shoe_id) : null
 
-  // Next upcoming race (soonest future date)
-  const nextRace = [...initRaces]
+  // All upcoming races sorted soonest first
+  const upcomingRaces = [...initRaces]
     .filter(r => r.date >= todayStr)
-    .sort((a, b) => a.date.localeCompare(b.date))[0] ?? null
+    .sort((a, b) => a.date.localeCompare(b.date))
+
+  // Next upcoming race (soonest future date) — kept for other references
+  const nextRace = upcomingRaces[0] ?? null
 
   // Best by category
   function bestShoe(cat: string) {
@@ -471,40 +493,81 @@ export default function HomeClient({ shoes, runs, userName, upcomingRaces: initR
             {runs.length === 0 ? "NO RUNS LOGGED YET — LET'S GO." : `${runs.length} RUN${runs.length!==1?'S':''} LOGGED · ${totalMiles.toFixed(1)} TOTAL MILES`}
           </div>
         </div>
-        {nextRace ? (
-          <div className={styles.nextRaceCard} onClick={()=>openEditRace(nextRace)}>
-            {getRaceLogoUrl(nextRace.name) && (
-              <img src={getRaceLogoUrl(nextRace.name)!} alt={nextRace.name} className={styles.nextRaceLogo} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
-            )}
-            <div className={styles.nextRaceLabel}>NEXT RACE</div>
-            <div className={styles.nextRaceDays}>{daysUntil(nextRace.date)}</div>
-            <div className={styles.nextRaceDaysLabel}>DAYS TO GO</div>
-            <div className={styles.nextRaceName}>{nextRace.name}</div>
-            <div className={styles.nextRaceDate}>
-              {new Date(nextRace.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
-              {nextRace.goal_time && <span style={{color:'var(--accent)'}}> · Goal {nextRace.goal_time}</span>}
+        {/* UPCOMING RACES — all of them, soonest first */}
+        <div className={styles.upcomingRacesBlock}>
+          {upcomingRaces.length > 0 ? (
+            <div className={styles.upcomingRacesList}>
+              {upcomingRaces.map((race, i) => {
+                const isNext = i === 0
+                const days = daysUntil(race.date)
+                const major = getMajorForRace(race.name)
+                return (
+                  <div
+                    key={race.id}
+                    className={`${styles.upcomingRaceCard} ${isNext ? styles.upcomingRaceCardPrimary : styles.upcomingRaceCardSecondary}`}
+                    onClick={() => openEditRace(race)}
+                  >
+                    {/* LOGO */}
+                    {isNext && getRaceLogoUrl(race.name) && (
+                      <img src={getRaceLogoUrl(race.name)!} alt={race.name} className={styles.nextRaceLogo} onError={e=>{(e.target as HTMLImageElement).style.display='none'}} />
+                    )}
+
+                    {/* CONTENT */}
+                    <div className={styles.upcomingRaceContent}>
+                      {isNext && <div className={styles.nextRaceLabel}>NEXT RACE</div>}
+                      {isNext && (
+                        <>
+                          <div className={styles.nextRaceDays}>{days}</div>
+                          <div className={styles.nextRaceDaysLabel}>DAYS TO GO</div>
+                        </>
+                      )}
+                      <div className={isNext ? styles.nextRaceName : styles.secondaryRaceName}>{race.name}</div>
+                      <div className={styles.upcomingRaceDate}>
+                        {new Date(race.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}
+                        {!isNext && <span className={styles.upcomingRaceDaysBadge}>{days}d</span>}
+                        {race.goal_time && <span style={{color:'var(--accent)'}}> · Goal {race.goal_time}</span>}
+                      </div>
+
+                      {/* MAJOR LINK */}
+                      {major && (
+                        <button
+                          className={styles.majorLink}
+                          onClick={e => { e.stopPropagation(); router.push(`/app/majors/${major.id}`) }}
+                        >
+                          {major.flag} View {major.name} entry guide ↗
+                        </button>
+                      )}
+
+                      {/* TIMELINE — only on the primary card */}
+                      {isNext && (
+                        <div className={styles.raceTimeline}>
+                          <div className={styles.raceTimelinePoint}>
+                            <div className={styles.raceTimelineDot}/>
+                            <div className={styles.raceTimelinePointLabel}>
+                              <div className={styles.raceTimelinePointTitle}>Today</div>
+                              <div className={styles.raceTimelinePointDate}>{today.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            </div>
+                          </div>
+                          <div className={styles.raceTimelineLine}/>
+                          <div className={styles.raceTimelinePoint}>
+                            <div className={`${styles.raceTimelineDot} ${styles.raceTimelineDotEnd}`}/>
+                            <div className={styles.raceTimelinePointLabel}>
+                              <div className={styles.raceTimelinePointTitle}>Race Day</div>
+                              <div className={styles.raceTimelinePointDate}>{new Date(race.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-            <div className={styles.raceTimeline}>
-              <div className={styles.raceTimelinePoint}>
-                <div className={styles.raceTimelineDot}/>
-                <div className={styles.raceTimelinePointLabel}>
-                  <div className={styles.raceTimelinePointTitle}>Today</div>
-                  <div className={styles.raceTimelinePointDate}>{today.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-                </div>
-              </div>
-              <div className={styles.raceTimelineLine}/>
-              <div className={styles.raceTimelinePoint}>
-                <div className={`${styles.raceTimelineDot} ${styles.raceTimelineDotEnd}`}/>
-                <div className={styles.raceTimelinePointLabel}>
-                  <div className={styles.raceTimelinePointTitle}>Race Day</div>
-                  <div className={styles.raceTimelinePointDate}>{new Date(nextRace.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <button className={styles.nextRaceAddBtn} onClick={openAddRace}>+ Add Race</button>
-        )}
+          ) : null}
+          <button className={styles.nextRaceAddBtn} onClick={openAddRace}>
+            {upcomingRaces.length === 0 ? '+ Add Race' : '+ Add Another Race'}
+          </button>
+        </div>
       </div>
 
       {/* MOST RECENT SHOE */}
